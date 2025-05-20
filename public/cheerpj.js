@@ -4,7 +4,8 @@ let lib = null;
 async function waitCheerpJInitialized() {
   if (!handleCheerpJInit) {
     handleCheerpJInit = (async () => {
-      await cheerpjInit({ enableDebug: true });
+      const enableDebug = localStorage.getItem('ENABLE_DEBUG') != null
+      await cheerpjInit({ enableDebug });
       lib = await cheerpjRunLibrary("");
     })();
   }
