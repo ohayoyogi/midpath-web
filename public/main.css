@@ -1,0 +1,13 @@
+div.loading {
+    width: 5em;
+    height: 5em;
+    border-radius: 50%;
+    border: 0.25em solid #ccc;
+    border-top-color: #333;
+    animation: spinner 1.5s linear infinite;
+  }
+  @keyframes spinner {
+    to {
+      transform: rotate(360deg);
+    }
+  }
