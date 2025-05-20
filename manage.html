@@ -4,25 +4,25 @@
     <meta charset="utf-8" />
     <title>CheerpJ mitpath</title>
     <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
-    <script src="/public/cheerpj.js"></script>
-    <link rel="stylesheet" href="/public/main.css" />
+    <script src="./public/cheerpj.js"></script>
+    <link rel="stylesheet" href="./public/main.css" />
   </head>
   <body>
     <h1>MIDPath-Web Manage</h1>
-    <a href="/">Index</a>
-    <a href="/manage.html">Management</a>
+    <a href="./">Index</a>
+    <a href="./manage.html">Management</a>
     <hr />
     <div class="loading" id="main-loading"></div>
     <div id="main" style="display: none">
       <h3>Manage Installation</h3>
-      <p>You can store jar file on internal storage in web browser. You can try <a href="/lib/midpath-demos.jar" download="">midpath-demos.jar</a>.</p>
+      <p>You can store jar file on internal storage in web browser. You can try <a href="./lib/midpath-demos.jar" download="">midpath-demos.jar</a>.</p>
       <label for="jarfile">Choose archive file</label>
       <input name="jarfile" type="file" id="file-input" />
       <h3>Installed Archives</h3>
       <div id="intalled-files">
         <p>
           Installed archive files are listed below. Go
-          <a href="/">main page</a> and select one to launch.
+          <a href="./">main page</a> and select one to launch.
         </p>
         <input type="button" id="button-archive-refresh" value="refresh" />
         <ul id="list-jar">

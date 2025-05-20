@@ -46,6 +46,9 @@ async function installArchive(file) {
 }
 
 async function runMain(filename) {
+  const subdir = location.pathname.split('/').slice(0,-1).join('/');
+  const appdir = "/app" + subdir;
+
   const jarfiles = [
     "avetanabt-cldc.jar",
     "cldc1.1.jar",
@@ -68,8 +71,8 @@ async function runMain(filename) {
     "midpath-demos.jar",
     "midpath.jar",
     "sdljava-cldc.jar",
-  ].map((filename) => `/app/lib/${filename}`);
-  const classPath = ["/app/lib/configuration", ...jarfiles].join(":");
+  ].map((filename) => `${appdir}/lib/${filename}`);
+  const classPath = [`${appdir}/lib/configuration`, ...jarfiles].join(":");
 
   return cheerpjRunMain(
     "org.thenesis.midpath.main.MIDletLauncherSE",
