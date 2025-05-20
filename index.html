@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CheerpJ mitpath</title>
+    <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
+    <script src="/public/cheerpj.js"></script>
+    <link rel="stylesheet" href="/public/main.css" />
+  </head>
+  <body>
+    <h1>MIDPath-Web</h1>
+    <a href="/">Index</a>
+    <a href="/manage.html">Management</a>
+    <hr />
+    <div class="loading" id="main-loading"></div>
+    <div id="main" style="display: none">
+      <p>
+        <select name="jarfile" id="jar-select">
+          <option value="" disabled selected>
+            -- Please choose jar file --
+          </option>
+        </select>
+        <input type="button" id="button-launch" value="launch" />
+      </p>
+      <div id="cheepj-container"></div>
+    </div>
+    <div id="error-no-installed-jar" style="display: none">
+      No archives are installed. Please go
+      <a href="/manage.html">Manage Page</a> and install first.
+    </div>
+    <script type="module">
+      await waitCheerpJInitialized();
+
+      await (async () => {
+        const elemSelect = document.getElementById("jar-select");
+        const installedFiles = await getFiles();
+        if (installedFiles.length < 1) {
+          elemSelect.remove();
+          document.getElementById("main-loading").remove();
+          document.getElementById("error-no-installed-jar").style.display = "";
+          return;
+        }
+        installedFiles.forEach((filename) => {
+          const elemOption = document.createElement("option");
+          elemOption.value = filename;
+          elemOption.innerText = filename;
+          elemSelect.appendChild(elemOption);
+        });
+
+        const buttonLaunch = document.getElementById("button-launch");
+        buttonLaunch.onclick = async () => {
+          if (elemSelect.value !== "") {
+            buttonLaunch.disabled = true;
+            await runMain(elemSelect.value);
+            buttonLaunch.disabled = false;
+          }
+        };
+
+        document.getElementById("main-loading").remove();
+        document.getElementById("main").style.display = "";
+
+        cheerpjCreateDisplay(
+          800,
+          600,
+          document.getElementById("cheerpj-container")
+        );
+      })();
+    </script>
+  </body>
+</html>
