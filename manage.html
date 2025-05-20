@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>CheerpJ mitpath</title>
+    <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
+    <script src="./public/cheerpj.js"></script>
+    <link rel="stylesheet" href="./public/main.css" />
+  </head>
+  <body>
+    <h1>MIDPath-Web Manage</h1>
+    <a href="./">Index</a>
+    <a href="./manage.html">Management</a>
+    <hr />
+    <div class="loading" id="main-loading"></div>
+    <div id="main" style="display: none">
+      <h3>Manage Installation</h3>
+      <p>You can store jar file on internal storage in web browser. You can try <a href="./lib/midpath-demos.jar" download="">midpath-demos.jar</a>.</p>
+      <label for="jarfile">Choose archive file</label>
+      <input name="jarfile" type="file" id="file-input" />
+      <h3>Installed Archives</h3>
+      <div id="intalled-files">
+        <p>
+          Installed archive files are listed below. Go
+          <a href="./">main page</a> and select one to launch.
+        </p>
+        <input type="button" id="button-archive-refresh" value="refresh" />
+        <ul id="list-jar">
+          <div class="loading"></div>
+        </ul>
+      </div>
+    </div>
+    <script type="module">
+      await waitCheerpJInitialized();
+      document.getElementById("main-loading").remove();
+      document.getElementById("main").style.display = "";
+
+      const filePicker = document.getElementById("file-input");
+      filePicker.onchange = (e) => {
+        const file = e.target.files[0];
+        installArchive(file).then(() => {
+          console.log("installed!");
+        });
+      };
+
+      async function refreshArchiveList() {
+        const jarFiles = await getFiles();
+        const elemUl = document.getElementById("list-jar");
+        elemUl.innerHTML = "";
+        jarFiles.forEach((file) => {
+          const elemLi = document.createElement("li");
+          elemLi.innerText = file;
+          elemUl.appendChild(elemLi);
+        });
+      }
+      const buttonRefresh = document.getElementById("button-archive-refresh");
+      buttonRefresh.onclick = refreshArchiveList();
+      refreshArchiveList();
+    </script>
+    <footer>
+      <small>
+        <a href="https://github.com/ohayoyogi/midpath-web"
+          >https://github.com/ohayoyogi/midpath-web</a
+        >
+      </small>
+    </footer>
+  </body>
+</html>
