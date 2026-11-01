@@ -2,7 +2,7 @@
 
 const CHEERPJ_LOADER = "https://cjrtnc.leaningtech.com/4.0/loader.js";
 
-// MIDPath 0.3rc2 runtime jars, fetched into lib/ by scripts/fetch-midpath.sh.
+// MIDPath runtime jars, built from ohayoyogi/midpath into lib/ by scripts/build-midpath.sh.
 const MIDPATH_JARS = [
   "avetanabt-cldc.jar",
   "cldc1.1.jar",
@@ -21,6 +21,7 @@ const MIDPATH_JARS = [
   "jsr239-opengles-jgl.jar",
   "jsr239-opengles-nio.jar",
   "kxml2-2.3.0.jar",
+  "libretro-java.jar",
   "microbackend.jar",
   "midpath-demos.jar",
   "midpath.jar",

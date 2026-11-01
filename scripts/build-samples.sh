@@ -13,7 +13,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="${1:?usage: $0 /path/to/micromidp}"
 SRC="$(cd "$SRC" && pwd)"
 MIDPATH_JAR="$ROOT/lib/midpath.jar"
-[ -f "$MIDPATH_JAR" ] || { echo "missing $MIDPATH_JAR -- run scripts/fetch-midpath.sh" >&2; exit 1; }
+[ -f "$MIDPATH_JAR" ] || { echo "missing $MIDPATH_JAR -- run scripts/build-midpath.sh" >&2; exit 1; }
 
 OUT="$ROOT/samples"
 mkdir -p "$OUT"

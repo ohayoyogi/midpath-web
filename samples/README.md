@@ -12,7 +12,7 @@ output without preverification. The micromidp revision is recorded in each jar's
 Rebuild them from a micromidp checkout:
 
 ```bash
-scripts/fetch-midpath.sh
+scripts/build-midpath.sh
 scripts/build-samples.sh ../micromidp
 ```
 

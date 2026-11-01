@@ -23,8 +23,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch MIDPath runtime jars
-        run: scripts/fetch-midpath.sh
+      - uses: actions/setup-java@v4
+        id: java8
+        with:
+          distribution: temurin
+          java-version: "8"
+
+      - name: Build MIDPath runtime jars from ohayoyogi/midpath
+        run: scripts/build-midpath.sh
+        env:
+          JAVA8_HOME: ${{ steps.java8.outputs.path }}
 
       - name: Assemble site
         run: |
