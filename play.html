@@ -96,15 +96,18 @@
           </table>
         </div>
 
-        <details class="panel">
-          <summary data-i18n="player.log"></summary>
+        <details class="panel" id="log-panel">
+          <summary class="log-head">
+            <span data-i18n="player.log"></span>
+            <button class="btn btn-ghost" type="button" id="btn-copy-log" data-i18n="player.copylog"></button>
+          </summary>
           <pre class="log" id="console"></pre>
         </details>
       </div>
     </main>
 
     <script type="module">
-      import { SAMPLES, t, applyI18n, setupLangToggle, el } from "./public/site.js";
+      import { SAMPLES, t, applyI18n, setupLangToggle, el, toast } from "./public/site.js";
       import { getJar } from "./public/library.js";
       import { initRuntime, runJar, provideJar, fetchJar } from "./public/runtime.js";
 
@@ -169,7 +172,59 @@
       try { savedZoom = localStorage.getItem("zoom"); } catch {}
       setZoom(savedZoom || (innerWidth >= 900 && innerHeight >= 860 ? "1.5" : "1"));
       zoomButtons.forEach((b) => b.addEventListener("click", () => setZoom(b.dataset.zoom)));
+      // Fullscreen: scale the screen to fit, keeping the aspect ratio.
       document.getElementById("btn-fullscreen").addEventListener("click", () => frame.requestFullscreen?.());
+      function fitFullscreen() {
+        if (document.fullscreenElement === frame) {
+          frame.style.zoom = 1;
+          display.style.zoom = Math.max(1, Math.min(innerWidth / 240, innerHeight / 320));
+        } else {
+          display.style.zoom = "";
+          const pressed = zoomButtons.find((b) => b.getAttribute("aria-pressed") === "true");
+          frame.style.zoom = pressed ? pressed.dataset.zoom : 1;
+        }
+      }
+      document.addEventListener("fullscreenchange", fitFullscreen);
+      window.addEventListener("resize", () => document.fullscreenElement === frame && fitFullscreen());
+
+      // ---- log --------------------------------------------------------------
+      // Java's System.out/err go to #console (CheerpJ). Browser-side errors are kept too,
+      // so one copy has everything needed for a bug report.
+      const browserLog = [];
+      for (const level of ["error", "warn"]) {
+        const original = console[level].bind(console);
+        console[level] = (...args) => {
+          browserLog.push(`[${level}] ` + args.map((a) => (a instanceof Error ? a.stack || a.message : String(a))).join(" "));
+          original(...args);
+        };
+      }
+      window.addEventListener("error", (e) => browserLog.push(`[error] ${e.message} (${e.filename}:${e.lineno})`));
+      window.addEventListener("unhandledrejection", (e) => browserLog.push(`[unhandled] ${e.reason?.stack || e.reason}`));
+
+      document.getElementById("btn-copy-log").addEventListener("click", async (e) => {
+        e.preventDefault(); // keep the <details> state
+        const text = [
+          `URL: ${location.href}`,
+          `Time: ${new Date().toISOString()}`,
+          `UserAgent: ${navigator.userAgent}`,
+          "",
+          "--- Java console ---",
+          document.getElementById("console").textContent.trimEnd() || "(empty)",
+          "",
+          "--- Browser console (errors/warnings) ---",
+          browserLog.join("\n") || "(empty)",
+        ].join("\n");
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const ta = el("textarea", { style: "position:fixed;opacity:0" }, text);
+          document.body.append(ta);
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+        }
+        toast(t("player.copied"));
+      });
       document.getElementById("btn-reload").addEventListener("click", () => location.reload());
 
       // ---- on-screen keypad -------------------------------------------------
@@ -250,7 +305,8 @@
         try {
           await initRuntime({ debug: params.has("debug") });
           // 240x320 screen (configuration.cfg) plus room for the AWT frame decoration.
-          cheerpjCreateDisplay(256, 352, display);
+          // Same size as the MIDP screen (configuration.cfg); the AWT frame is undecorated.
+          cheerpjCreateDisplay(240, 320, display);
 
           let jarPath;
           if (target.kind === "sample") {
