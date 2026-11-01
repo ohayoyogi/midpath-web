@@ -60,12 +60,33 @@ export function appDir() {
   return "/app" + subdir;
 }
 
-/** Make an uploaded jar visible to Java under /str and return its path. */
-export function provideJar(name, bytes) {
+/**
+ * Place a jar where MIDPath can open it and return its path.
+ *
+ * MIDPath opens the jar with RandomAccessFile(file, "rws") even just to read the manifest,
+ * which fails on CheerpJ's read-only /app and /str mounts. So the bytes go to /str first and
+ * are then copied into the writable /files (IndexedDB) mount, as the first version did.
+ */
+export async function provideJar(name, bytes) {
   const safe = name.replace(/[^\w.-]/g, "_");
-  const path = `/str/${safe}`;
-  cheerpOSAddStringFile(path, bytes);
-  return path;
+  const strPath = `/str/${safe}`;
+  cheerpOSAddStringFile(strPath, bytes);
+  const lib = await cheerpjRunLibrary("");
+  const Paths = await lib.java.nio.file.Paths;
+  const Files = await lib.java.nio.file.Files;
+  const dir = await Paths.get("/files/.run");
+  if (!(await Files.isDirectory(dir))) await Files.createDirectory(dir);
+  const dst = await Paths.get(`/files/.run/${safe}`);
+  await Files.deleteIfExists(dst);
+  await Files.copy(await Paths.get(strPath), dst);
+  return `/files/.run/${safe}`;
+}
+
+/** Download a jar served with the site (e.g. "samples/PlanetJump.jar"). */
+export async function fetchJar(relPath) {
+  const res = await fetch(relPath, { cache: "no-cache" });
+  if (!res.ok) throw new Error(`${relPath}: HTTP ${res.status}`);
+  return new Uint8Array(await res.arrayBuffer());
 }
 
 export function runJar(jarPath) {
