@@ -370,8 +370,8 @@ kbd {
   max-width: 100%;
 }
 #display {
-  width: 256px;
-  height: 352px;
+  width: 240px;
+  height: 320px;
   background: var(--screen);
 }
 .screen-overlay {
@@ -389,6 +389,21 @@ kbd {
   font-size: 0.85rem;
 }
 .screen-overlay[hidden] { display: none; }
+.screen-frame:fullscreen {
+  display: grid;
+  place-items: center;
+  background: #000;
+  border: 0;
+  border-radius: 0;
+}
+.log-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.log-head summary { cursor: pointer; font-weight: 600; font-size: 0.95rem; }
+.log { margin-top: 8px; }
 .screen-overlay .btn { flex: none; }
 .screen-overlay small { color: #a39f95; }
 .spinner {
