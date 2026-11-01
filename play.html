@@ -106,7 +106,7 @@
     <script type="module">
       import { SAMPLES, t, applyI18n, setupLangToggle, el } from "./public/site.js";
       import { getJar } from "./public/library.js";
-      import { initRuntime, runJar, provideJar, appDir } from "./public/runtime.js";
+      import { initRuntime, runJar, provideJar, fetchJar } from "./public/runtime.js";
 
       const params = new URLSearchParams(location.search);
       const overlay = document.getElementById("overlay");
@@ -253,8 +253,10 @@
           cheerpjCreateDisplay(256, 352, display);
 
           let jarPath;
-          if (target.kind === "sample") jarPath = `${appDir()}/${target.sample.jar}`;
-          else if (target.kind === "local") jarPath = provideJar(target.record.fileName, bytes);
+          if (target.kind === "sample") {
+            const name = target.sample.jar.split("/").pop();
+            jarPath = await provideJar(name, await fetchJar(target.sample.jar));
+          } else if (target.kind === "local") jarPath = await provideJar(target.record.fileName, bytes);
           else jarPath = `/files/${target.file}`;
 
           showMessage("player.starting", { spinner: true });
