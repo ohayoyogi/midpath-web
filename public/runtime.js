@@ -70,7 +70,9 @@ export function provideJar(name, bytes) {
 
 export function runJar(jarPath) {
   const dir = appDir();
-  const classPath = [`${dir}/lib/configuration`, ...MIDPATH_JARS.map((f) => `${dir}/lib/${f}`)].join(":");
+  // MIDletLauncher's -jar only reads the manifest; the MIDlet class itself is loaded with
+  // Class.forName, so the jar has to be on the classpath too.
+  const classPath = [`${dir}/lib/configuration`, jarPath, ...MIDPATH_JARS.map((f) => `${dir}/lib/${f}`)].join(":");
   return cheerpjRunMain("org.thenesis.midpath.main.MIDletLauncherSE", classPath, "-jar", jarPath);
 }
 
