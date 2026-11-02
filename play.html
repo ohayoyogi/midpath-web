@@ -201,6 +201,22 @@
       window.addEventListener("error", (e) => browserLog.push(`[error] ${e.message} (${e.filename}:${e.lineno})`));
       window.addEventListener("unhandledrejection", (e) => browserLog.push(`[unhandled] ${e.reason?.stack || e.reason}`));
 
+      // HTTP errors (e.g. 404) never reach console.error, but the Resource Timing API
+      // reports the status of every request the page made.
+      function failedRequests() {
+        const entries = performance.getEntriesByType("resource");
+        if (entries.length && !("responseStatus" in entries[0])) return "(not supported by this browser)";
+        const failed = entries.filter((e) => e.responseStatus >= 400);
+        if (!failed.length) return "(none)";
+        const counts = new Map();
+        for (const e of failed) {
+          const key = `${e.responseStatus} ${e.name}`;
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+        return `${failed.length} failed\n` + [...counts].map(([k, n]) => (n > 1 ? `${k} (x${n})` : k)).join("\n");
+      }
+      performance.setResourceTimingBufferSize?.(10000);
+
       document.getElementById("btn-copy-log").addEventListener("click", async (e) => {
         e.preventDefault(); // keep the <details> state
         const text = [
@@ -213,6 +229,9 @@
           "",
           "--- Browser console (errors/warnings) ---",
           browserLog.join("\n") || "(empty)",
+          "",
+          "--- Failed requests ---",
+          failedRequests(),
         ].join("\n");
         try {
           await navigator.clipboard.writeText(text);
