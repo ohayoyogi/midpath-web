@@ -5,6 +5,7 @@ export const SAMPLES = [
     id: "planetjump",
     title: "PlanetJump",
     jar: "samples/PlanetJump.jar",
+    source: "https://github.com/ohayoyogi/micromidp/tree/main/samples/planet-jump",
     tag: "micromidp",
     art: "planet",
     desc: {
@@ -20,6 +21,7 @@ export const SAMPLES = [
     id: "starraid",
     title: "StarRaid",
     jar: "samples/StarRaid.jar",
+    source: "https://github.com/ohayoyogi/micromidp/tree/main/samples/starraid",
     tag: "micromidp",
     art: "stars",
     desc: {
@@ -35,6 +37,7 @@ export const SAMPLES = [
     id: "midpath-demos",
     title: "MIDPath Demos",
     jar: "lib/midpath-demos.jar",
+    source: "https://github.com/ohayoyogi/midpath/tree/main/demos",
     tag: "MIDPath",
     art: "grid",
     desc: {
@@ -61,6 +64,7 @@ const STRINGS = {
     "play": "起動",
     "delete": "削除",
     "download": "JAR",
+    "source": "ソース",
     "added": "追加しました",
     "deleted": "削除しました",
     "confirm.delete": "「{name}」を削除しますか？",
@@ -114,6 +118,7 @@ const STRINGS = {
     "play": "Play",
     "delete": "Delete",
     "download": "JAR",
+    "source": "Source",
     "added": "Added",
     "deleted": "Deleted",
     "confirm.delete": "Delete “{name}”?",
