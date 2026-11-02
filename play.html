@@ -65,6 +65,7 @@
       <div class="player-side">
         <h1 id="app-title">MIDlet</h1>
         <p class="sub" id="app-sub"></p>
+        <p class="sub" id="app-source" hidden><a target="_blank" rel="noopener"></a></p>
 
         <div class="panel">
           <h2 data-i18n="player.view"></h2>
@@ -138,6 +139,13 @@
         const lang = document.documentElement.lang;
         const sub = document.getElementById("app-sub");
         if (target.sample) sub.textContent = target.sample.desc[lang];
+        const source = document.getElementById("app-source");
+        source.hidden = !target.sample?.source;
+        if (target.sample?.source) {
+          const a = source.querySelector("a");
+          a.href = target.sample.source;
+          a.textContent = `${t("source")}: ${target.sample.source.replace("https://github.com/", "")}`;
+        }
         else if (target.record) sub.textContent = [target.record.vendor, target.record.version && "v" + target.record.version, target.record.fileName].filter(Boolean).join(" · ");
         const keys = target.sample?.keys?.[lang];
         document.getElementById("game-keys").hidden = !keys;

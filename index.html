@@ -58,7 +58,8 @@
         <p data-i18n="footer.about"></p>
         <p>
           <a href="https://github.com/ohayoyogi/midpath-web">github.com/ohayoyogi/midpath-web</a> ·
-          <a href="http://midpath.thenesis.org/">MIDPath</a> ·
+          <a href="https://github.com/ohayoyogi/midpath">MIDPath (ohayoyogi/midpath)</a> ·
+          <a href="https://github.com/ohayoyogi/micromidp">micromidp</a> ·
           <a href="https://cheerpj.com/">CheerpJ</a>
         </p>
       </div>
@@ -88,7 +89,8 @@
                   "div",
                   { class: "card-actions" },
                   el("a", { class: "btn btn-primary", href: `./play.html?sample=${s.id}` }, "▶ " + t("play")),
-                  el("a", { class: "btn btn-ghost", href: s.jar, download: "" }, t("download"))
+                  el("a", { class: "btn btn-ghost", href: s.jar, download: "" }, t("download")),
+                  s.source && el("a", { class: "btn btn-ghost", href: s.source, target: "_blank", rel: "noopener" }, t("source"))
                 )
               )
             )

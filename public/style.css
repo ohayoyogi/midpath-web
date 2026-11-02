@@ -200,7 +200,9 @@ section { padding: 28px 0 8px; }
   font-family: var(--mono);
   overflow-wrap: anywhere;
 }
-.card-actions { display: flex; gap: 8px; margin-top: 6px; }
+.card-actions { display: flex; gap: 6px; margin-top: 6px; }
+.card-actions .btn { white-space: nowrap; }
+.card-actions .btn-ghost { padding: 7px 10px; }
 
 .tag {
   font-size: 0.7rem;
