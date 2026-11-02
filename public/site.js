@@ -88,8 +88,7 @@ const STRINGS = {
     "player.zoom": "拡大",
     "player.reload": "リセット",
     "player.fullscreen": "全画面",
-    "player.hint":
-      "画面をクリックしてからキーボードで操作します。下のキーパッドはタッチ操作にも対応しています。",
+    "player.hint": "キーボードでそのまま操作できます。下のキーパッドはタッチ操作にも対応しています。",
     "player.keymap.arrows": "方向キー",
     "player.keymap.fire": "決定",
     "player.keymap.soft": "左 / 右ソフトキー",
@@ -142,7 +141,7 @@ const STRINGS = {
     "player.zoom": "Zoom",
     "player.reload": "Reset",
     "player.fullscreen": "Fullscreen",
-    "player.hint": "Click the screen, then use the keyboard. The keypad below also works with touch.",
+    "player.hint": "Play with the keyboard right away. The keypad below also works with touch.",
     "player.keymap.arrows": "Arrow keys",
     "player.keymap.fire": "Select",
     "player.keymap.soft": "Left / right soft key",

@@ -203,6 +203,10 @@
 
       // HTTP errors (e.g. 404) never reach console.error, but the Resource Timing API
       // reports the status of every request the page made.
+      function describe(n) {
+        if (!n) return "none";
+        return n.tagName.toLowerCase() + (n.id ? "#" + n.id : "") + (n.className && typeof n.className === "string" ? "." + n.className.trim().split(/\s+/).join(".") : "") + (n.hasAttribute?.("tabindex") ? "[tabindex]" : "");
+      }
       function failedRequests() {
         const entries = performance.getEntriesByType("resource");
         if (entries.length && !("responseStatus" in entries[0])) return "(not supported by this browser)";
@@ -223,6 +227,8 @@
           `URL: ${location.href}`,
           `Time: ${new Date().toISOString()}`,
           `UserAgent: ${navigator.userAgent}`,
+          `Focus: ${describe(document.activeElement)} (in screen: ${javaHasFocus()})`,
+          `Screen elements: ${[...display.querySelectorAll("*")].slice(0, 12).map(describe).join(", ")}`,
           "",
           "--- Java console ---",
           document.getElementById("console").textContent.trimEnd() || "(empty)",
@@ -267,11 +273,59 @@
         if (active && active !== document.body && display.contains(active)) return active;
         return display.querySelector("textarea, input, canvas, [tabindex]") || display;
       }
+      function makeKeyEvent(type, key, code, keyCode, extra = {}) {
+        const ev = new KeyboardEvent(type, { key, code, bubbles: true, cancelable: true, composed: true, ...extra });
+        for (const prop of ["keyCode", "which"]) Object.defineProperty(ev, prop, { get: () => keyCode });
+        return ev;
+      }
       function sendKey(name, type) {
         const [key, code, keyCode] = KEYS[name];
-        const ev = new KeyboardEvent(type, { key, code, bubbles: true, cancelable: true, composed: true });
-        for (const prop of ["keyCode", "which"]) Object.defineProperty(ev, prop, { get: () => keyCode });
-        keyTarget().dispatchEvent(ev);
+        focusJava();
+        keyTarget().dispatchEvent(makeKeyEvent(type, key, code, keyCode));
+      }
+
+      // Keyboard input only reaches the Java window once it has focus, which CheerpJ gives it
+      // when the screen is clicked. Do that click for the user: after launch, before keypad
+      // presses, and when a key is pressed while focus is elsewhere on the page. The click
+      // lands on the screen's top-left pixel; the bundled games ignore pointer input.
+      let javaRunning = false;
+      function javaHasFocus() {
+        const a = document.activeElement;
+        return !!a && a !== display && display.contains(a);
+      }
+      function focusJava() {
+        if (!javaRunning || javaHasFocus()) return;
+        const r = display.getBoundingClientRect();
+        const x = r.left + 1, y = r.top + 1;
+        const hit = document.elementFromPoint(x, y);
+        const target = hit && display.contains(hit) ? hit : display.querySelector("canvas") || display;
+        const opts = { bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, button: 0, view: window };
+        target.dispatchEvent(new PointerEvent("pointerdown", { ...opts, pointerId: 1, isPrimary: true }));
+        target.dispatchEvent(new MouseEvent("mousedown", { ...opts, buttons: 1 }));
+        target.dispatchEvent(new PointerEvent("pointerup", { ...opts, pointerId: 1, isPrimary: true }));
+        target.dispatchEvent(new MouseEvent("mouseup", opts));
+        target.dispatchEvent(new MouseEvent("click", opts));
+        if (!javaHasFocus()) {
+          const focusable = display.querySelector("textarea, input, [tabindex]");
+          focusable?.focus({ preventScroll: true });
+        }
+      }
+
+      // Physical keys pressed while the page (not the screen) has focus: focus the screen
+      // and forward the key, so the first key press is not lost.
+      const FORWARD = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "F1", "F2", "*", "#",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
+      for (const type of ["keydown", "keyup"]) {
+        document.addEventListener(type, (e) => {
+          if (!javaRunning || !e.isTrusted || !FORWARD.has(e.key)) return;
+          if (display.contains(e.target) && javaHasFocus()) return;
+          const t = e.target;
+          if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          focusJava();
+          keyTarget().dispatchEvent(makeKeyEvent(type, e.key, e.code, e.keyCode, { shiftKey: e.shiftKey }));
+        }, true);
       }
       document.querySelectorAll("#keypad .key").forEach((btn) => {
         const name = btn.dataset.key;
@@ -336,6 +390,9 @@
 
           showMessage("player.starting", { spinner: true });
           // Reveal the screen as soon as Java starts drawing into the display.
+          javaRunning = true;
+          // Give the screen keyboard focus once the MIDlet window has appeared.
+          for (const ms of [1500, 4000, 8000]) setTimeout(focusJava, ms);
           const observer = new MutationObserver(() => {
             overlay.hidden = true;
             observer.disconnect();
@@ -347,6 +404,7 @@
           }, 10000);
 
           const exitCode = await runJar(jarPath);
+          javaRunning = false;
           observer.disconnect();
           showMessage("player.exited", { action: true, detail: exitCode ? `exit ${exitCode}` : "" });
         } catch (err) {
