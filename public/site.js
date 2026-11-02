@@ -52,7 +52,6 @@ const STRINGS = {
     "hero.lead":
       "MIDPath と CheerpJ を使い、J2ME（MIDP 2.0）アプリをインストールなしでブラウザ上で動かします。サンプルを選ぶか、手元の JAR を追加してください。",
     "samples.title": "サンプル",
-    "samples.sub": "クリックですぐ起動します",
     "library.title": "マイライブラリ",
     "library.sub": "JAR はこのブラウザ内に保存され、外部には送信されません",
     "drop.lead": "JAR ファイルをここにドロップ",
@@ -107,7 +106,6 @@ const STRINGS = {
     "hero.lead":
       "Run J2ME (MIDP 2.0) apps in the browser with MIDPath and CheerpJ — nothing to install. Pick a sample or add a JAR of your own.",
     "samples.title": "Samples",
-    "samples.sub": "Click to launch",
     "library.title": "My library",
     "library.sub": "JARs are stored in this browser only and never uploaded",
     "drop.lead": "Drop JAR files here",
