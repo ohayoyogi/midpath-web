@@ -93,7 +93,9 @@ export function runJar(jarPath) {
   const dir = appDir();
   // MIDletLauncher's -jar only reads the manifest; the MIDlet class itself is loaded with
   // Class.forName, so the jar has to be on the classpath too.
-  const classPath = [`${dir}/lib/configuration`, jarPath, ...MIDPATH_JARS.map((f) => `${dir}/lib/${f}`)].join(":");
+  // configuration.jar (built from lib/configuration/) rather than the directory itself: a
+  // directory on the classpath makes CheerpJ request every class from it, one 404 each.
+  const classPath = [`${dir}/lib/configuration.jar`, jarPath, ...MIDPATH_JARS.map((f) => `${dir}/lib/${f}`)].join(":");
   return cheerpjRunMain("org.thenesis.midpath.main.MIDletLauncherSE", classPath, "-jar", jarPath);
 }
 

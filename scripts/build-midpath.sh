@@ -72,5 +72,9 @@ cp "$WORK/libretro-java.jar" "$WORK/midpath-build/lib/libretro-java.jar"
 
 rm -f "$ROOT"/lib/*.jar
 cp "$WORK"/midpath-build/dist/*.jar "$ROOT/lib/"
+
+# MIDPath reads its configuration as classpath resources. Ship it as a jar: CheerpJ looks up
+# every class in a classpath *directory* over HTTP first, which caused one 404 per class.
+"$JAVA8_HOME/bin/jar" cf "$ROOT/lib/configuration.jar" -C "$ROOT/lib/configuration" .
 REV=$(git -C "$MIDPATH_DIR" rev-parse --short HEAD 2>/dev/null || echo unknown)
 echo "$(ls -1 "$ROOT"/lib/*.jar | wc -l | tr -d ' ') jars installed in lib/ from ohayoyogi/midpath $REV"
