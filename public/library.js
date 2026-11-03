@@ -57,17 +57,54 @@ export async function deleteJar(id) {
 /** Store a jar File/Blob. Throws if it is not a zip with a MIDlet manifest. */
 export async function addJar(file) {
   const buffer = await file.arrayBuffer();
-  const info = await inspectJar(buffer);
+  if (/\.kjx$/i.test(file.name) && !isKjx(buffer)) throw new Error("bad-kjx");
+  const kjx = isKjx(buffer) ? parseKjx(buffer) : null;
+  const info = await inspectJar(kjx ? kjx.jar : buffer);
+  if (kjx && !info.title) info.title = kjx.jadProps["MIDlet-Name"] || "";
   const record = {
     id: file.name,
     fileName: file.name,
+    kind: kjx ? "kjx" : "jar",
     size: buffer.byteLength,
     addedAt: Date.now(),
-    data: new Blob([buffer], { type: "application/java-archive" }),
+    data: new Blob([buffer], { type: kjx ? "application/octet-stream" : "application/java-archive" }),
+    // A KJX wraps a jar; MIDPath loads the MIDlet classes from that jar on the classpath.
+    jar: kjx ? new Blob([kjx.jar], { type: "application/java-archive" }) : null,
     ...info,
   };
   await tx("readwrite", (s) => request(s.put(record)));
   return record;
+}
+
+// ---------------------------------------------------------------------------
+// KJX (au / KDDI): "KJX", header offset byte, file name, big-endian JAD length, JAD file
+// name, JAD content, then the jar itself. Same layout as MIDPath's KjxInspectorME reads.
+
+export function isKjx(buffer) {
+  const b = new Uint8Array(buffer, 0, Math.min(3, buffer.byteLength));
+  return b.length === 3 && b[0] === 0x4b && b[1] === 0x4a && b[2] === 0x58;
+}
+
+export function parseKjx(buffer) {
+  const b = new Uint8Array(buffer);
+  let p = 3;
+  const need = (n) => {
+    if (p + n > b.length) throw new Error("bad-kjx");
+  };
+  need(2);
+  p += 1; // offset of the JAD (not needed: the fields below are read in order)
+  const nameLen = b[p++];
+  need(nameLen + 3);
+  p += nameLen;
+  const jadLen = (b[p] << 8) | b[p + 1];
+  p += 2;
+  const jadNameLen = b[p++];
+  need(jadNameLen + jadLen);
+  p += jadNameLen;
+  const jadBytes = b.subarray(p, p + jadLen);
+  p += jadLen;
+  const jad = new TextDecoder("shift_jis").decode(jadBytes);
+  return { jad, jadProps: parseManifest(jad), jar: buffer.slice(p) };
 }
 
 // ---------------------------------------------------------------------------
