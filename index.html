@@ -39,7 +39,7 @@
           <div><strong data-i18n="drop.lead"></strong></div>
           <div><span data-i18n="drop.or"></span></div>
           <span class="btn" data-i18n="drop.pick"></span>
-          <input type="file" id="file-input" accept=".jar,application/java-archive" multiple />
+          <input type="file" id="file-input" accept=".jar,.kjx,application/java-archive" multiple />
         </label>
         <div id="library-error"></div>
         <div class="grid" id="library-grid"></div>
@@ -127,7 +127,7 @@
               el(
                 "div",
                 { class: "card-body" },
-                el("div", { class: "card-title" }, j.title || j.fileName),
+                el("div", { class: "card-title" }, j.title || j.fileName, j.kind === "kjx" && el("span", { class: "tag" }, "KJX")),
                 (j.vendor || j.version) &&
                   el("p", { class: "card-desc" }, [j.vendor, j.version && "v" + j.version].filter(Boolean).join(" · ")),
                 el("div", { class: "card-meta" }, meta.join(" · ")),
@@ -160,7 +160,7 @@
         const errorBox = document.getElementById("library-error");
         errorBox.replaceChildren();
         for (const file of files) {
-          if (!/\.jar$/i.test(file.name)) {
+          if (!/\.(jar|kjx)$/i.test(file.name)) {
             errorBox.append(el("div", { class: "notice error" }, `${file.name}: ${t("err.ext")}`));
             continue;
           }

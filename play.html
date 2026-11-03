@@ -380,6 +380,7 @@
           target.title = rec.title || rec.fileName;
           renderInfo();
           bytes = new Uint8Array(await rec.data.arrayBuffer());
+          if (rec.kind === "kjx") target.innerJar = new Uint8Array(await rec.jar.arrayBuffer());
         }
 
         showMessage("player.loading", { spinner: true, detail: t("player.loading2") });
@@ -390,11 +391,18 @@
           cheerpjCreateDisplay(240, 320, display);
 
           let jarPath;
+          let classJars;
           if (target.kind === "sample") {
             const name = target.sample.jar.split("/").pop();
             jarPath = await provideJar(name, await fetchJar(target.sample.jar));
-          } else if (target.kind === "local") jarPath = await provideJar(target.record.fileName, bytes);
-          else jarPath = `/files/${target.file}`;
+          } else if (target.kind === "local") {
+            jarPath = await provideJar(target.record.fileName, bytes);
+            if (target.innerJar) {
+              // KJX: MIDPath reads the .kjx itself, but loads the classes from its jar.
+              const innerName = target.record.fileName.replace(/\.kjx$/i, "") + ".jar";
+              classJars = [await provideJar(innerName, target.innerJar)];
+            }
+          } else jarPath = `/files/${target.file}`;
 
           showMessage("player.starting", { spinner: true });
           // Reveal the screen as soon as Java starts drawing into the display.
@@ -411,7 +419,7 @@
             observer.disconnect();
           }, 10000);
 
-          const exitCode = await runJar(jarPath);
+          const exitCode = await runJar(jarPath, classJars || [jarPath]);
           javaRunning = false;
           observer.disconnect();
           showMessage("player.exited", { action: true, detail: exitCode ? `exit ${exitCode}` : "" });

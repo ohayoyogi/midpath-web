@@ -20,6 +20,7 @@ const MIDPATH_JARS = [
   "jsr239-opengles-core.jar",
   "jsr239-opengles-jgl.jar",
   "jsr239-opengles-nio.jar",
+  "kddi.jar",
   "kxml2-2.3.0.jar",
   "libretro-java.jar",
   "microbackend.jar",
@@ -89,14 +90,18 @@ export async function fetchJar(relPath) {
   return new Uint8Array(await res.arrayBuffer());
 }
 
-export function runJar(jarPath) {
+/**
+ * Run a MIDlet suite. launchPath is handed to MIDletLauncher -jar (a .jar, or a .kjx that
+ * MIDPath's KjxInspectorME reads); classJars are the jars the MIDlet classes load from.
+ */
+export function runJar(launchPath, classJars = [launchPath]) {
   const dir = appDir();
   // MIDletLauncher's -jar only reads the manifest; the MIDlet class itself is loaded with
   // Class.forName, so the jar has to be on the classpath too.
   // configuration.jar (built from lib/configuration/) rather than the directory itself: a
   // directory on the classpath makes CheerpJ request every class from it, one 404 each.
-  const classPath = [`${dir}/lib/configuration.jar`, jarPath, ...MIDPATH_JARS.map((f) => `${dir}/lib/${f}`)].join(":");
-  return cheerpjRunMain("org.thenesis.midpath.main.MIDletLauncherSE", classPath, "-jar", jarPath);
+  const classPath = [`${dir}/lib/configuration.jar`, ...classJars, ...MIDPATH_JARS.map((f) => `${dir}/lib/${f}`)].join(":");
+  return cheerpjRunMain("org.thenesis.midpath.main.MIDletLauncherSE", classPath, "-jar", launchPath);
 }
 
 /** Jars installed by the first version of this site into CheerpJ's persistent /files. */
