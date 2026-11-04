@@ -44,6 +44,9 @@
 
 * { box-sizing: border-box; }
 
+/* Classes that set display (e.g. .btn) must not override the hidden attribute. */
+[hidden] { display: none !important; }
+
 html { -webkit-text-size-adjust: 100%; }
 
 body {
@@ -509,3 +512,7 @@ kbd {
   .hero { padding-top: 26px; }
   .card-art { height: 96px; }
 }
+
+.setting + .setting { margin-top: 10px; }
+.setting .card-desc { margin: 4px 0 0; }
+#app-settings .btn-primary { margin-top: 8px; flex: none; }

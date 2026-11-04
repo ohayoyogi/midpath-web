@@ -49,7 +49,9 @@ export function initRuntime(options = {}) {
   if (!initPromise) {
     initPromise = (async () => {
       await loadLoader();
-      await cheerpjInit({ enableDebug: !!options.debug });
+      // javaProperties become Java system properties, which MIDPath's Configuration reads
+      // before configuration.cfg: this is how per-app settings reach MIDPath.
+      await cheerpjInit({ enableDebug: !!options.debug, javaProperties: options.javaProperties || [] });
     })();
   }
   return initPromise;
