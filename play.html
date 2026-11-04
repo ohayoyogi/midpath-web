@@ -81,6 +81,13 @@
           </div>
         </div>
 
+        <div class="panel" id="app-settings" hidden>
+          <h2 data-i18n="player.appsettings"></h2>
+          <div id="app-settings-body"></div>
+          <p class="card-desc" data-i18n="player.appsettings.note"></p>
+          <button class="btn btn-primary" type="button" id="btn-apply-settings" hidden data-i18n="player.appsettings.apply"></button>
+        </div>
+
         <div class="panel" id="game-keys" hidden>
           <h2 data-i18n="player.controls"></h2>
           <table class="keys-table" id="game-keys-table"></table>
@@ -111,6 +118,7 @@
       import { SAMPLES, t, applyI18n, setupLangToggle, el, toast } from "./public/site.js";
       import { getJar } from "./public/library.js";
       import { initRuntime, runJar, provideJar, fetchJar } from "./public/runtime.js";
+      import { SETTINGS, appKey, getAppSettings, setAppSetting, javaPropertiesFor } from "./public/settings.js";
 
       const params = new URLSearchParams(location.search);
       const overlay = document.getElementById("overlay");
@@ -131,7 +139,55 @@
         target = { kind: "legacy", file: params.get("legacy"), title: params.get("legacy") };
       }
 
+      // ---- per-app settings ---------------------------------------------------
+      // Read once: these are the values this launch actually runs with.
+      const settingsKey = appKey(target);
+      const launchProperties = javaPropertiesFor(settingsKey);
+      const launchSettings = JSON.stringify(getAppSettings(settingsKey));
+
+      function renderSettings() {
+        const panel = document.getElementById("app-settings");
+        panel.hidden = !settingsKey;
+        if (!settingsKey) return;
+        const lang = document.documentElement.lang;
+        const current = getAppSettings(settingsKey);
+        const choiceLabel = { default: t("player.appsettings.default"), true: t("player.appsettings.on"), false: t("player.appsettings.off") };
+        document.getElementById("app-settings-body").replaceChildren(
+          ...SETTINGS.map((s) => {
+            const value = current[s.id] || "default";
+            const seg = el(
+              "div",
+              { class: "seg", role: "group", "aria-label": s.label[lang] },
+              ...s.choices.map((c) =>
+                el(
+                  "button",
+                  {
+                    type: "button",
+                    "aria-pressed": String(c === value),
+                    onclick: () => {
+                      setAppSetting(settingsKey, s.id, c);
+                      renderSettings();
+                    },
+                  },
+                  choiceLabel[c] || c
+                )
+              )
+            );
+            return el(
+              "div",
+              { class: "setting" },
+              el("div", { class: "toolbar" }, el("span", {}, s.label[lang]), seg),
+              el("p", { class: "card-desc" }, s.note[lang])
+            );
+          })
+        );
+        // Settings take effect at launch; offer a restart once they differ from this one.
+        document.getElementById("btn-apply-settings").hidden = JSON.stringify(current) === launchSettings;
+      }
+      document.getElementById("btn-apply-settings").addEventListener("click", () => location.reload());
+
       function renderInfo() {
+        renderSettings();
         applyI18n();
         if (!target) return;
         document.getElementById("app-title").textContent = target.title;
@@ -235,6 +291,7 @@
           `URL: ${location.href}`,
           `Time: ${new Date().toISOString()}`,
           `UserAgent: ${navigator.userAgent}`,
+          `App settings: ${launchProperties.join(" ") || "(defaults)"}`,
           `Focus: ${describe(document.activeElement)} (in screen: ${javaHasFocus()})`,
           `Screen elements: ${[...display.querySelectorAll("*")].slice(0, 12).map(describe).join(", ")}`,
           "",
@@ -385,7 +442,7 @@
 
         showMessage("player.loading", { spinner: true, detail: t("player.loading2") });
         try {
-          await initRuntime({ debug: params.has("debug") });
+          await initRuntime({ debug: params.has("debug"), javaProperties: launchProperties });
           // 240x320 screen (configuration.cfg) plus room for the AWT frame decoration.
           // Same size as the MIDP screen (configuration.cfg); the AWT frame is undecorated.
           cheerpjCreateDisplay(240, 320, display);

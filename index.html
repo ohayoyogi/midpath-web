@@ -68,6 +68,7 @@
     <script type="module">
       import { SAMPLES, t, lang, applyI18n, setupLangToggle, el, toast, cardArt } from "./public/site.js";
       import { listJars, addJar, deleteJar, formatSize } from "./public/library.js";
+      import { forgetApp } from "./public/settings.js";
 
       const currentLang = () => document.documentElement.lang;
       const iconUrls = [];
@@ -143,6 +144,7 @@
                       onclick: async () => {
                         if (!confirm(t("confirm.delete", { name: j.title || j.fileName }))) return;
                         await deleteJar(j.id);
+                        forgetApp(`local:${j.id}`);
                         toast(t("deleted"));
                         renderLibrary();
                       },
