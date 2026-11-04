@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MIDPath-Web</title>
     <meta name="description" content="Run J2ME (MIDP 2.0) apps in your browser with MIDPath and CheerpJ." />
-    <link rel="stylesheet" href="./public/style.css" />
+    <link rel="stylesheet" href="./public/style.css?v=d71e4bb" />
   </head>
   <body>
     <header class="site-header">
@@ -66,8 +66,8 @@
     </footer>
 
     <script type="module">
-      import { SAMPLES, t, lang, applyI18n, setupLangToggle, el, toast, cardArt } from "./public/site.js";
-      import { listJars, addJar, deleteJar, formatSize } from "./public/library.js";
+      import { SAMPLES, t, lang, applyI18n, setupLangToggle, el, toast, cardArt } from "./public/site.js?v=d71e4bb";
+      import { listJars, addJar, deleteJar, formatSize } from "./public/library.js?v=d71e4bb";
 
       const currentLang = () => document.documentElement.lang;
       const iconUrls = [];
@@ -204,7 +204,7 @@
         button.disabled = true;
         list.replaceChildren(el("li", {}, "…"));
         try {
-          const { listLegacyFiles } = await import("./public/runtime.js");
+          const { listLegacyFiles } = await import("./public/runtime.js?v=d71e4bb");
           const files = await listLegacyFiles();
           list.replaceChildren(
             ...(files.length

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MIDPath-Web Player</title>
-    <link rel="stylesheet" href="./public/style.css" />
+    <link rel="stylesheet" href="./public/style.css?v=d71e4bb" />
   </head>
   <body>
     <header class="site-header">
@@ -108,9 +108,9 @@
     </main>
 
     <script type="module">
-      import { SAMPLES, t, applyI18n, setupLangToggle, el, toast } from "./public/site.js";
-      import { getJar } from "./public/library.js";
-      import { initRuntime, runJar, provideJar, fetchJar } from "./public/runtime.js";
+      import { SAMPLES, t, applyI18n, setupLangToggle, el, toast } from "./public/site.js?v=d71e4bb";
+      import { getJar } from "./public/library.js?v=d71e4bb";
+      import { initRuntime, runJar, provideJar, fetchJar } from "./public/runtime.js?v=d71e4bb";
 
       const params = new URLSearchParams(location.search);
       const overlay = document.getElementById("overlay");
