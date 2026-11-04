@@ -55,6 +55,14 @@ export function initRuntime(options = {}) {
   return initPromise;
 }
 
+// CheerpJ allows only one cheerpjRunLibrary() per page ("Only one library thread
+// supported"), and a KJX launch copies two files, so share the first one.
+let libraryPromise = null;
+function javaLibrary() {
+  if (!libraryPromise) libraryPromise = cheerpjRunLibrary("");
+  return libraryPromise;
+}
+
 /** Directory of the site as seen from CheerpJ's /app mount (e.g. "/app/midpath-web"). */
 export function appDir() {
   const subdir = location.pathname.split("/").slice(0, -1).join("/");
@@ -72,7 +80,7 @@ export async function provideJar(name, bytes) {
   const safe = name.replace(/[^\w.-]/g, "_");
   const strPath = `/str/${safe}`;
   cheerpOSAddStringFile(strPath, bytes);
-  const lib = await cheerpjRunLibrary("");
+  const lib = await javaLibrary();
   const Paths = await lib.java.nio.file.Paths;
   const Files = await lib.java.nio.file.Files;
   const dir = await Paths.get("/files/.run");
@@ -107,7 +115,7 @@ export function runJar(launchPath, classJars = [launchPath]) {
 /** Jars installed by the first version of this site into CheerpJ's persistent /files. */
 export async function listLegacyFiles() {
   await initRuntime();
-  const lib = await cheerpjRunLibrary("");
+  const lib = await javaLibrary();
   const Paths = await lib.java.nio.file.Paths;
   const Files = await lib.java.nio.file.Files;
   const dir = await Paths.get("/files");
