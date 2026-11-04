@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MIDPath-Web Player</title>
-    <link rel="stylesheet" href="./public/style.css?v=181b921" />
+    <link rel="stylesheet" href="./public/style.css?v=390e989" />
   </head>
   <body>
     <header class="site-header">
@@ -109,16 +109,18 @@
             <span data-i18n="player.log"></span>
             <button class="btn btn-ghost" type="button" id="btn-copy-log" data-i18n="player.copylog"></button>
           </summary>
-          <pre class="log" id="console"></pre>
+          <pre class="log" id="log-view"></pre>
+          <!-- CheerpJ writes Java's System.out/err here; it is drained into a bounded buffer. -->
+          <pre id="console" hidden></pre>
         </details>
       </div>
     </main>
 
     <script type="module">
-      import { SAMPLES, t, applyI18n, setupLangToggle, el, toast } from "./public/site.js?v=181b921";
-      import { getJar } from "./public/library.js?v=181b921";
-      import { initRuntime, runJar, provideJar, fetchJar } from "./public/runtime.js?v=181b921";
-      import { SETTINGS, appKey, getAppSettings, setAppSetting, javaPropertiesFor } from "./public/settings.js?v=181b921";
+      import { SAMPLES, t, applyI18n, setupLangToggle, el, toast } from "./public/site.js?v=390e989";
+      import { getJar } from "./public/library.js?v=390e989";
+      import { initRuntime, runJar, provideJar, fetchJar } from "./public/runtime.js?v=390e989";
+      import { SETTINGS, appKey, getAppSettings, setAppSetting, javaPropertiesFor } from "./public/settings.js?v=390e989";
 
       const params = new URLSearchParams(location.search);
       const overlay = document.getElementById("overlay");
@@ -252,9 +254,78 @@
       window.addEventListener("resize", () => document.fullscreenElement === frame && fitFullscreen());
 
       // ---- log --------------------------------------------------------------
-      // Java's System.out/err go to #console (CheerpJ). Browser-side errors are kept too,
-      // so one copy has everything needed for a bug report.
-      const browserLog = [];
+      // Java's System.out/err go to #console (CheerpJ). A MIDlet or stub that prints every
+      // frame made that element grow without bound, which slowed the page until it stopped
+      // responding. So #console is emptied every half second into a bounded buffer that
+      // keeps the last lines and collapses repeats; only the buffer is shown and copied.
+      class LogBuffer {
+        constructor(max) {
+          this.max = max;
+          this.lines = []; // { text, count }
+          this.dropped = 0;
+          this.total = 0;
+        }
+        push(text) {
+          this.total++;
+          const last = this.lines[this.lines.length - 1];
+          if (last && last.text === text) {
+            last.count++;
+            return;
+          }
+          this.lines.push({ text, count: 1 });
+          if (this.lines.length > this.max) {
+            this.lines.shift();
+            this.dropped++;
+          }
+        }
+        toString() {
+          const out = this.lines.map((l) => (l.count > 1 ? `${l.text}  (x${l.count})` : l.text));
+          if (this.dropped) out.unshift(`(… ${this.dropped} earlier lines dropped)`);
+          return out.join("\n");
+        }
+      }
+      const javaLog = new LogBuffer(2000);
+      const browserLog = new LogBuffer(500);
+      const consoleEl = document.getElementById("console");
+      const logView = document.getElementById("log-view");
+      const logPanel = document.getElementById("log-panel");
+      let pending = "";
+      let logDirty = false;
+      function drainConsole() {
+        const text = consoleEl.textContent;
+        if (!text) return;
+        consoleEl.textContent = "";
+        const parts = (pending + text).split("\n");
+        pending = parts.pop(); // keep an unfinished last line for the next round
+        for (const line of parts) javaLog.push(line);
+        logDirty = true;
+      }
+      setInterval(() => {
+        drainConsole();
+        // Redraw only when someone is looking at it.
+        if (logDirty && logPanel.open) {
+          logView.textContent = javaLog.toString();
+          logDirty = false;
+        }
+      }, 500);
+      logPanel.addEventListener("toggle", () => {
+        if (logPanel.open) {
+          drainConsole();
+          logView.textContent = javaLog.toString();
+          logDirty = false;
+        }
+      });
+
+      // How long the page's main thread was blocked: if this grows while a MIDlet runs,
+      // the page cannot react to taps and keys.
+      let maxStall = 0;
+      let lastTick = performance.now();
+      setInterval(() => {
+        const now = performance.now();
+        maxStall = Math.max(maxStall, now - lastTick - 250);
+        lastTick = now;
+      }, 250);
+
       for (const level of ["error", "warn"]) {
         const original = console[level].bind(console);
         console[level] = (...args) => {
@@ -294,12 +365,14 @@
           `App settings: ${launchProperties.join(" ") || "(defaults)"}`,
           `Focus: ${describe(document.activeElement)} (in screen: ${javaHasFocus()})`,
           `Screen elements: ${[...display.querySelectorAll("*")].slice(0, 12).map(describe).join(", ")}`,
+          `Main thread longest stall: ${Math.round(maxStall)} ms`,
+          `Java output lines: ${javaLog.total}`,
           "",
           "--- Java console ---",
-          document.getElementById("console").textContent.trimEnd() || "(empty)",
+          (drainConsole(), javaLog.toString() + (pending ? "\n" + pending : "")).trimEnd() || "(empty)",
           "",
           "--- Browser console (errors/warnings) ---",
-          browserLog.join("\n") || "(empty)",
+          browserLog.toString() || "(empty)",
           "",
           "--- Failed requests ---",
           failedRequests(),
