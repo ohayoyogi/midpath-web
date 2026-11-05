@@ -22,6 +22,14 @@ in the script (override with `MIDPATH_REF` / `LIBRETRO_REF`, or build a local ch
 `MIDPATH_DIR` / `LIBRETRO_DIR`). It needs a JDK 8 (`JAVA8_HOME`), because MIDPath compiles
 with `-source 1.3 -target 1.1`.
 
+## Japanese font
+
+MIDPath's built-in font only covers character codes 0-255. For Japanese apps the player
+switches MIDPath to its BDF renderer with `lib/configuration/fonts/shinonome12-unicode.bdf`
+(12-dot Shinonome fonts, public domain), per app from its settings; on by default for KJX.
+`scripts/build-font.sh` regenerates the font from the Debian packages xfonts-shinonome
+and pcf2bdf.
+
 ## Samples
 
 `samples/` contains PlanetJump and StarRaid from
