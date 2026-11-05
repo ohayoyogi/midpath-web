@@ -38,10 +38,17 @@ See [samples/README.md](samples/README.md) to rebuild or add samples.
 
 ## Deploy
 
-`.github/workflows/pages.yml` builds the MIDPath jars from
-[ohayoyogi/midpath](https://github.com/ohayoyogi/midpath) and deploys the site to GitHub Pages
-on every push to `main`. In the repository settings, set **Pages → Build and deployment →
-Source** to **GitHub Actions**.
+GitHub Pages serves the `gh-pages` branch. `.github/workflows/pages.yml` builds the MIDPath
+jars from [ohayoyogi/midpath](https://github.com/ohayoyogi/midpath), assembles the site
+with `scripts/assemble-site.sh` and commits it to `gh-pages` on every push to `main`.
+
+To deploy by hand:
+
+```bash
+scripts/build-midpath.sh
+scripts/assemble-site.sh /tmp/site
+# then copy /tmp/site over a checkout of the gh-pages branch and commit
+```
 
 ## License
 

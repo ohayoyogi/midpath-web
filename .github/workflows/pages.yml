@@ -1,25 +1,23 @@
 name: Deploy to GitHub Pages
 
+# Builds the site and publishes it by committing to the gh-pages branch, which GitHub Pages
+# serves ("Deploy from a branch: gh-pages").
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,14 +33,23 @@ jobs:
           JAVA8_HOME: ${{ steps.java8.outputs.path }}
 
       - name: Assemble site
-        run: |
-          mkdir -p _site
-          cp -r index.html play.html manage.html .nojekyll public lib samples COPYING LICENSE _site/
-          scripts/stamp-version.sh _site "${GITHUB_SHA::7}"
+        run: scripts/assemble-site.sh _site "${GITHUB_SHA::7}"
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/checkout@v4
         with:
-          path: _site
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Publish to gh-pages
+        run: |
+          rsync -a --delete --exclude .git _site/ gh-pages/
+          cd gh-pages
+          git add -A
+          if git diff --cached --quiet; then
+            echo "gh-pages is already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Deploy ${GITHUB_SHA::7}"
+          git push origin HEAD:gh-pages
