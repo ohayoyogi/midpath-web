@@ -51,9 +51,9 @@ export const SAMPLES = [
 const STRINGS = {
   ja: {
     "nav.github": "GitHub",
-    "hero.title": "ブラウザで動く、ケータイ Java。",
+    "hero.title": "MIDPath-Web",
     "hero.lead":
-      "MIDPath と CheerpJ を使い、J2ME（MIDP 2.0）アプリをインストールなしでブラウザ上で動かします。サンプルを選ぶか、手元の JAR を追加してください。",
+      "MIDPath と CheerpJ を使い、J2ME（MIDP 2.0）アプリをインストールなしでブラウザ上で動かします。サンプルを選ぶか、手元の JAR・KJX を追加してください。",
     "samples.title": "サンプル",
     "library.title": "マイライブラリ",
     "library.sub": "JAR / KJX はこのブラウザ内に保存され、外部には送信されません",
@@ -112,9 +112,9 @@ const STRINGS = {
   },
   en: {
     "nav.github": "GitHub",
-    "hero.title": "Feature-phone Java, in your browser.",
+    "hero.title": "MIDPath-Web",
     "hero.lead":
-      "Run J2ME (MIDP 2.0) apps in the browser with MIDPath and CheerpJ — nothing to install. Pick a sample or add a JAR of your own.",
+      "Run J2ME (MIDP 2.0) apps in the browser with MIDPath and CheerpJ — nothing to install. Pick a sample or add a JAR or KJX of your own.",
     "samples.title": "Samples",
     "library.title": "My library",
     "library.sub": "JARs and KJXs are stored in this browser only and never uploaded",
