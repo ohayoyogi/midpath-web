@@ -120,7 +120,7 @@
       import { SAMPLES, t, applyI18n, setupLangToggle, el, toast } from "./public/site.js";
       import { getJar } from "./public/library.js";
       import { initRuntime, runJar, provideJar, fetchJar } from "./public/runtime.js";
-      import { SETTINGS, appKey, getAppSettings, setAppSetting, javaPropertiesFor } from "./public/settings.js";
+      import { SETTINGS, appKey, getAppSettings, setAppSetting, javaPropertiesFor, defaultValue } from "./public/settings.js";
 
       const params = new URLSearchParams(location.search);
       const overlay = document.getElementById("overlay");
@@ -144,7 +144,7 @@
       // ---- per-app settings ---------------------------------------------------
       // Read once: these are the values this launch actually runs with.
       const settingsKey = appKey(target);
-      const launchProperties = javaPropertiesFor(settingsKey);
+      const launchProperties = javaPropertiesFor(settingsKey, target);
       const launchSettings = JSON.stringify(getAppSettings(settingsKey));
 
       function renderSettings() {
@@ -153,7 +153,7 @@
         if (!settingsKey) return;
         const lang = document.documentElement.lang;
         const current = getAppSettings(settingsKey);
-        const choiceLabel = { default: t("player.appsettings.default"), true: t("player.appsettings.on"), false: t("player.appsettings.off") };
+        const valueLabel = { true: t("player.appsettings.on"), false: t("player.appsettings.off") };
         document.getElementById("app-settings-body").replaceChildren(
           ...SETTINGS.map((s) => {
             const value = current[s.id] || "default";
@@ -171,7 +171,9 @@
                       renderSettings();
                     },
                   },
-                  choiceLabel[c] || c
+                  c === "default"
+                    ? (lang === "ja" ? `${t("player.appsettings.default")}（${valueLabel[defaultValue(s, target)] || "-"}）` : `${t("player.appsettings.default")} (${valueLabel[defaultValue(s, target)] || "-"})`)
+                    : valueLabel[c] || c
                 )
               )
             );
@@ -189,8 +191,8 @@
       document.getElementById("btn-apply-settings").addEventListener("click", () => location.reload());
 
       function renderInfo() {
-        renderSettings();
         applyI18n();
+        renderSettings();
         if (!target) return;
         document.getElementById("app-title").textContent = target.title;
         document.title = `${target.title} – MIDPath-Web`;
