@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MIDPath-Web</title>
     <meta name="description" content="Run J2ME (MIDP 2.0) apps in your browser with MIDPath and CheerpJ." />
-    <link rel="stylesheet" href="./public/style.css?v=912907c" />
+    <link rel="stylesheet" href="./public/style.css?v=48266fd" />
   </head>
   <body>
     <header class="site-header">
@@ -66,9 +66,9 @@
     </footer>
 
     <script type="module">
-      import { SAMPLES, t, lang, applyI18n, setupLangToggle, el, toast, cardArt } from "./public/site.js?v=912907c";
-      import { listJars, addJar, deleteJar, formatSize } from "./public/library.js?v=912907c";
-      import { forgetApp } from "./public/settings.js?v=912907c";
+      import { SAMPLES, t, lang, applyI18n, setupLangToggle, el, toast, cardArt } from "./public/site.js?v=48266fd";
+      import { listJars, addJar, deleteJar, formatSize } from "./public/library.js?v=48266fd";
+      import { forgetApp } from "./public/settings.js?v=48266fd";
 
       const currentLang = () => document.documentElement.lang;
       const iconUrls = [];
@@ -206,7 +206,7 @@
         button.disabled = true;
         list.replaceChildren(el("li", {}, "…"));
         try {
-          const { listLegacyFiles } = await import("./public/runtime.js?v=912907c");
+          const { listLegacyFiles } = await import("./public/runtime.js?v=48266fd");
           const files = await listLegacyFiles();
           list.replaceChildren(
             ...(files.length

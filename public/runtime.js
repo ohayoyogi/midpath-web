@@ -7,6 +7,7 @@ const MIDPATH_JARS = [
   "avetanabt-cldc.jar",
   "cldc1.1.jar",
   "escher-cldc.jar",
+  "fonts-ja.jar",
   "jgl-cldc.jar",
   "jlayerme-cldc.jar",
   "jorbis-cldc.jar",

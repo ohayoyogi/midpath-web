@@ -27,7 +27,7 @@ export const SETTINGS = [
     id: "japaneseFont",
     // Japanese apps need two things:
     // - glyphs: MIDPath's built-in font only has character codes 0-255, so use the BDF
-    //   renderer with the Shinonome font shipped in configuration.jar (lib/configuration/fonts);
+    //   renderer with the Shinonome font from MIDPath's fonts-ja.jar;
     // - Shift_JIS as the default charset: phone VMs decoded new String(byte[]) as Shift_JIS,
     //   and games keep their text as Shift_JIS bytes in resources (game dialogue, for example).
     //   MS932 is Shift_JIS as Japanese phones and Windows use it.
