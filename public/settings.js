@@ -14,6 +14,9 @@ export const SETTINGS = [
     id: "immediateRepaint",
     property: "com.sun.midp.events.immediateRepaint",
     choices: ["default", "true", "false"],
+    // au (KJX) games commonly call repaint() and then spin until paint() has run; that
+    // only works when repaint() paints at once, so they get it by default.
+    defaultFor: (target) => (isKjxTarget(target) ? "true" : "false"),
     label: { ja: "即時再描画（実験的）", en: "Immediate repaint (experimental)" },
     note: {
       ja: "repaint() を呼んだスレッドがその場で描画します。動きが滑らかになるアプリもあれば、ちらつく・固まるアプリもあります。",
@@ -23,6 +26,17 @@ export const SETTINGS = [
 ];
 
 const STORAGE_KEY = "midpath-web.appSettings";
+
+/** True for an au KJX app, judged by its file name. */
+export function isKjxTarget(target) {
+  const name = target?.kind === "local" ? target.id : target?.kind === "legacy" ? target.file : "";
+  return /\.kjx$/i.test(name || "");
+}
+
+/** The value a setting takes for this app when it is left at "default". */
+export function defaultValue(setting, target) {
+  return setting.defaultFor ? setting.defaultFor(target) : null;
+}
 
 /** Stable key for what is being launched: "sample:<id>", "local:<file>", "legacy:<file>". */
 export function appKey(target) {
@@ -73,12 +87,13 @@ export function forgetApp(key) {
 }
 
 /** Java system properties ("key=value") for an app's overridden settings. */
-export function javaPropertiesFor(key) {
+export function javaPropertiesFor(key, target) {
   const app = getAppSettings(key);
   const props = [];
   for (const s of SETTINGS) {
-    const v = app[s.id];
-    if (v != null && v !== "default" && s.choices.includes(v)) props.push(`${s.property}=${v}`);
+    let v = app[s.id];
+    if (v == null || v === "default" || !s.choices.includes(v)) v = defaultValue(s, target);
+    if (v != null) props.push(`${s.property}=${v}`);
   }
   return props;
 }
