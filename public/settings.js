@@ -25,18 +25,26 @@ export const SETTINGS = [
   },
   {
     id: "japaneseFont",
-    // MIDPath's built-in font only has character codes 0-255; Japanese needs the BDF
-    // renderer with the Shinonome font shipped in configuration.jar (lib/configuration/fonts).
+    // Japanese apps need two things:
+    // - glyphs: MIDPath's built-in font only has character codes 0-255, so use the BDF
+    //   renderer with the Shinonome font shipped in configuration.jar (lib/configuration/fonts);
+    // - Shift_JIS as the default charset: phone VMs decoded new String(byte[]) as Shift_JIS,
+    //   and games keep their text as Shift_JIS bytes in resources (game dialogue, for example).
+    //   MS932 is Shift_JIS as Japanese phones and Windows use it.
     properties: (value) =>
       value === "true"
-        ? ["org.thenesis.midpath.ui.fontRenderer=BDF", "org.thenesis.midpath.font.bdf.filename=/fonts/shinonome12-unicode.bdf"]
+        ? [
+            "org.thenesis.midpath.ui.fontRenderer=BDF",
+            "org.thenesis.midpath.font.bdf.filename=/fonts/shinonome12-unicode.bdf",
+            "file.encoding=MS932",
+          ]
         : ["org.thenesis.midpath.ui.fontRenderer=raw"],
     choices: ["default", "true", "false"],
     defaultFor: (target) => (isKjxTarget(target) ? "true" : "false"),
-    label: { ja: "日本語フォント", en: "Japanese font" },
+    label: { ja: "日本語（フォント・Shift_JIS）", en: "Japanese (font, Shift_JIS)" },
     note: {
-      ja: "日本語を表示できる 12 ドットのフォント（東雲フォント）で文字を描きます。オフのときは英数字だけの内蔵フォントです。",
-      en: "Draws text with a 12-dot font that has Japanese (Shinonome). When off, the built-in font has only Latin characters.",
+      ja: "日本語を表示できる 12 ドットのフォント（東雲フォント）で文字を描き、アプリが読むテキストを Shift_JIS として扱います。オフのときは英数字だけの内蔵フォントです。",
+      en: "Draws text with a 12-dot font that has Japanese (Shinonome) and reads the app's text as Shift_JIS. When off, the built-in font has only Latin characters.",
     },
   },
 ];
