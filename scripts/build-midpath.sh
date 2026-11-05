@@ -17,7 +17,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MIDPATH_REPO=https://github.com/ohayoyogi/midpath
 LIBRETRO_REPO=https://github.com/ohayoyogi/libretro-java
-MIDPATH_REF="${MIDPATH_REF:-e723587e4bee75d54cba412d976f708325c923d6}"
+MIDPATH_REF="${MIDPATH_REF:-dfefecf4355056baf4f7cfb4202df5065bfdda53}"
 LIBRETRO_REF="${LIBRETRO_REF:-a1b9e39207b30a0ca2e13f1838afd6d8919247ab}"
 
 if [ -z "${JAVA8_HOME:-}" ]; then

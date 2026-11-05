@@ -25,10 +25,10 @@ with `-source 1.3 -target 1.1`.
 ## Japanese font
 
 MIDPath's built-in font only covers character codes 0-255. For Japanese apps the player
-switches MIDPath to its BDF renderer with `lib/configuration/fonts/shinonome12-unicode.bdf`
-(12-dot Shinonome fonts, public domain), per app from its settings; on by default for KJX.
-`scripts/build-font.sh` regenerates the font from the Debian packages xfonts-shinonome
-and pcf2bdf.
+switches MIDPath to its BDF renderer with the Shinonome font from MIDPath's `fonts-ja.jar`
+(ohayoyogi/midpath `components/fonts-ja`), and sets `file.encoding=MS932` so text built
+with `new String(byte[])` is read as Shift_JIS - per app from its settings, on by default
+for KJX.
 
 ## Samples
 
