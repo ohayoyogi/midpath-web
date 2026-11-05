@@ -23,6 +23,22 @@ export const SETTINGS = [
       en: "Paints at once in the thread that calls repaint(). Smoother for some apps; others may flicker or freeze.",
     },
   },
+  {
+    id: "japaneseFont",
+    // MIDPath's built-in font only has character codes 0-255; Japanese needs the BDF
+    // renderer with the Shinonome font shipped in configuration.jar (lib/configuration/fonts).
+    properties: (value) =>
+      value === "true"
+        ? ["org.thenesis.midpath.ui.fontRenderer=BDF", "org.thenesis.midpath.font.bdf.filename=/fonts/shinonome12-unicode.bdf"]
+        : ["org.thenesis.midpath.ui.fontRenderer=raw"],
+    choices: ["default", "true", "false"],
+    defaultFor: (target) => (isKjxTarget(target) ? "true" : "false"),
+    label: { ja: "日本語フォント", en: "Japanese font" },
+    note: {
+      ja: "日本語を表示できる 12 ドットのフォント（東雲フォント）で文字を描きます。オフのときは英数字だけの内蔵フォントです。",
+      en: "Draws text with a 12-dot font that has Japanese (Shinonome). When off, the built-in font has only Latin characters.",
+    },
+  },
 ];
 
 const STORAGE_KEY = "midpath-web.appSettings";
@@ -93,7 +109,9 @@ export function javaPropertiesFor(key, target) {
   for (const s of SETTINGS) {
     let v = app[s.id];
     if (v == null || v === "default" || !s.choices.includes(v)) v = defaultValue(s, target);
-    if (v != null) props.push(`${s.property}=${v}`);
+    if (v == null) continue;
+    if (s.properties) props.push(...s.properties(v));
+    else props.push(`${s.property}=${v}`);
   }
   return props;
 }
