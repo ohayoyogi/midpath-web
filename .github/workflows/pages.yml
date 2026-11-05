@@ -42,7 +42,9 @@ jobs:
 
       - name: Publish to gh-pages
         run: |
-          rsync -a --checksum --delete --exclude .git _site/ gh-pages/
+          # Replace the whole tree (but not .git) and let git find what changed by content.
+          find gh-pages -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a _site/. gh-pages/
           cd gh-pages
           git add -A
           if git diff --cached --quiet; then

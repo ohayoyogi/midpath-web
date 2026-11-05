@@ -47,7 +47,7 @@ To deploy by hand:
 ```bash
 scripts/build-midpath.sh
 scripts/assemble-site.sh /tmp/site
-# then copy /tmp/site over a checkout of the gh-pages branch and commit
+# then replace the contents of a gh-pages checkout (except .git) with /tmp/site and commit
 ```
 
 ## License
