@@ -1,70 +1,234 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <title>CheerpJ mitpath</title>
-    <script src="https://cjrtnc.leaningtech.com/4.0/loader.js"></script>
-    <script src="./public/cheerpj.js"></script>
-    <link rel="stylesheet" href="./public/main.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MIDPath-Web</title>
+    <meta name="description" content="Run J2ME (MIDP 2.0) apps in your browser with MIDPath and CheerpJ." />
+    <link rel="stylesheet" href="./public/style.css" />
   </head>
   <body>
-    <h1>MIDPath-Web</h1>
-    <a href="./">Index</a>
-    <a href="./manage.html">Management</a>
-    <hr />
-    <div class="loading" id="main-loading"></div>
-    <div id="main" style="display: none">
-      <p>
-        <select name="jarfile" id="jar-select">
-          <option value="" disabled selected>
-            -- Please choose jar file --
-          </option>
-        </select>
-        <input type="button" id="button-launch" value="launch" />
-      </p>
-      <div id="cheepj-container"></div>
-    </div>
-    <div id="error-no-installed-jar" style="display: none">
-      No archives are installed. Please go
-      <a href="./manage.html">Manage Page</a> and install first.
-    </div>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="./"><span class="brand-mark" aria-hidden="true"></span>MIDPath-Web</a>
+        <span class="header-spacer"></span>
+        <a class="header-link" href="https://github.com/ohayoyogi/midpath-web" data-i18n="nav.github">GitHub</a>
+        <button class="lang-toggle" id="lang-toggle" type="button">English</button>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="hero">
+        <h1 data-i18n="hero.title"></h1>
+        <p data-i18n="hero.lead"></p>
+      </div>
+
+      <section aria-labelledby="samples-title">
+        <div class="section-head">
+          <h2 id="samples-title" data-i18n="samples.title"></h2>
+        </div>
+        <div class="grid" id="sample-grid"></div>
+      </section>
+
+      <section id="library" aria-labelledby="library-title">
+        <div class="section-head">
+          <h2 id="library-title" data-i18n="library.title"></h2>
+          <p data-i18n="library.sub"></p>
+        </div>
+        <label class="dropzone" id="dropzone">
+          <div><strong data-i18n="drop.lead"></strong></div>
+          <div><span data-i18n="drop.or"></span></div>
+          <span class="btn" data-i18n="drop.pick"></span>
+          <input type="file" id="file-input" accept=".jar,.kjx,application/java-archive" multiple />
+        </label>
+        <div id="library-error"></div>
+        <div class="grid" id="library-grid"></div>
+        <p class="empty" id="library-empty" hidden data-i18n="library.empty"></p>
+
+        <details class="legacy" id="legacy">
+          <summary data-i18n="legacy.summary"></summary>
+          <p><button class="btn btn-ghost" type="button" id="legacy-load" data-i18n="legacy.load"></button></p>
+          <ul id="legacy-list"></ul>
+        </details>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <p data-i18n="footer.about"></p>
+        <p>
+          <a href="https://github.com/ohayoyogi/midpath-web">github.com/ohayoyogi/midpath-web</a> ·
+          <a href="https://github.com/ohayoyogi/midpath">MIDPath (ohayoyogi/midpath)</a> ·
+          <a href="https://github.com/ohayoyogi/micromidp">micromidp</a> ·
+          <a href="https://cheerpj.com/">CheerpJ</a>
+        </p>
+      </div>
+    </footer>
+
     <script type="module">
-      await waitCheerpJInitialized();
+      import { SAMPLES, t, lang, applyI18n, setupLangToggle, el, toast, cardArt } from "./public/site.js";
+      import { listJars, addJar, deleteJar, formatSize } from "./public/library.js";
+      import { forgetApp } from "./public/settings.js";
 
-      await (async () => {
-        const elemSelect = document.getElementById("jar-select");
-        const installedFiles = await getFiles();
-        if (installedFiles.length < 1) {
-          elemSelect.remove();
-          document.getElementById("main-loading").remove();
-          document.getElementById("error-no-installed-jar").style.display = "";
-          return;
-        }
-        installedFiles.forEach((filename) => {
-          const elemOption = document.createElement("option");
-          elemOption.value = filename;
-          elemOption.innerText = filename;
-          elemSelect.appendChild(elemOption);
-        });
+      const currentLang = () => document.documentElement.lang;
+      const iconUrls = [];
 
-        const buttonLaunch = document.getElementById("button-launch");
-        buttonLaunch.onclick = async () => {
-          if (elemSelect.value !== "") {
-            buttonLaunch.disabled = true;
-            await runMain(elemSelect.value);
-            buttonLaunch.disabled = false;
-          }
-        };
-
-        document.getElementById("main-loading").remove();
-        document.getElementById("main").style.display = "";
-
-        cheerpjCreateDisplay(
-          800,
-          600,
-          document.getElementById("cheerpj-container")
+      function renderSamples() {
+        const grid = document.getElementById("sample-grid");
+        grid.replaceChildren(
+          ...SAMPLES.map((s) =>
+            el(
+              "article",
+              { class: "card" },
+              el("div", { class: "card-art" }, cardArt(s.art, s.id)),
+              el(
+                "div",
+                { class: "card-body" },
+                el("div", { class: "card-title" }, s.title, el("span", { class: "tag" }, s.tag)),
+                el("p", { class: "card-desc" }, s.desc[currentLang()]),
+                el(
+                  "div",
+                  { class: "card-actions" },
+                  el("a", { class: "btn btn-primary", href: `./play.html?sample=${s.id}` }, "▶ " + t("play")),
+                  el("a", { class: "btn btn-ghost", href: s.jar, download: "" }, t("download")),
+                  s.source && el("a", { class: "btn btn-ghost", href: s.source, target: "_blank", rel: "noopener" }, t("source"))
+                )
+              )
+            )
+          )
         );
-      })();
+      }
+
+      async function renderLibrary() {
+        const grid = document.getElementById("library-grid");
+        iconUrls.splice(0).forEach((u) => URL.revokeObjectURL(u));
+        let jars = [];
+        try {
+          jars = await listJars();
+        } catch (e) {
+          console.error(e);
+        }
+        document.getElementById("library-empty").hidden = jars.length > 0;
+        grid.replaceChildren(
+          ...jars.map((j) => {
+            let art;
+            if (j.icon) {
+              const url = URL.createObjectURL(j.icon);
+              iconUrls.push(url);
+              art = el("img", { src: url, alt: "" });
+            } else {
+              art = el("span", { class: "initial" }, (j.title || j.fileName).slice(0, 1).toUpperCase());
+            }
+            const meta = [j.fileName, formatSize(j.size)];
+            if (j.midlets?.length > 1) meta.push(t("midlets", { n: j.midlets.length }));
+            return el(
+              "article",
+              { class: "card" },
+              el("div", { class: "card-art" }, art),
+              el(
+                "div",
+                { class: "card-body" },
+                el("div", { class: "card-title" }, j.title || j.fileName, j.kind === "kjx" && el("span", { class: "tag" }, "KJX")),
+                (j.vendor || j.version) &&
+                  el("p", { class: "card-desc" }, [j.vendor, j.version && "v" + j.version].filter(Boolean).join(" · ")),
+                el("div", { class: "card-meta" }, meta.join(" · ")),
+                el(
+                  "div",
+                  { class: "card-actions" },
+                  el("a", { class: "btn btn-primary", href: `./play.html?local=${encodeURIComponent(j.id)}` }, "▶ " + t("play")),
+                  el(
+                    "button",
+                    {
+                      class: "btn btn-danger",
+                      type: "button",
+                      onclick: async () => {
+                        if (!confirm(t("confirm.delete", { name: j.title || j.fileName }))) return;
+                        await deleteJar(j.id);
+                        forgetApp(`local:${j.id}`);
+                        toast(t("deleted"));
+                        renderLibrary();
+                      },
+                    },
+                    t("delete")
+                  )
+                )
+              )
+            );
+          })
+        );
+      }
+
+      async function handleFiles(files) {
+        const errorBox = document.getElementById("library-error");
+        errorBox.replaceChildren();
+        for (const file of files) {
+          if (!/\.(jar|kjx)$/i.test(file.name)) {
+            errorBox.append(el("div", { class: "notice error" }, `${file.name}: ${t("err.ext")}`));
+            continue;
+          }
+          try {
+            const rec = await addJar(file);
+            toast(`${t("added")}: ${rec.title || rec.fileName}`);
+          } catch (e) {
+            const msg = t("err." + e.message);
+            errorBox.append(el("div", { class: "notice error" }, `${file.name}: ${msg.startsWith("err.") ? e.message : msg}`));
+          }
+        }
+        renderLibrary();
+      }
+
+      const drop = document.getElementById("dropzone");
+      const input = document.getElementById("file-input");
+      input.addEventListener("change", () => {
+        handleFiles([...input.files]);
+        input.value = "";
+      });
+      ["dragenter", "dragover"].forEach((type) =>
+        drop.addEventListener(type, (e) => {
+          e.preventDefault();
+          drop.classList.add("is-over");
+        })
+      );
+      ["dragleave", "drop"].forEach((type) => drop.addEventListener(type, () => drop.classList.remove("is-over")));
+      drop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        handleFiles([...e.dataTransfer.files]);
+      });
+      // Dropping a file anywhere else on the page should not navigate away.
+      window.addEventListener("dragover", (e) => e.preventDefault());
+      window.addEventListener("drop", (e) => e.preventDefault());
+
+      // Jars installed by the earlier version live in CheerpJ's /files. Listing them needs
+      // the Java runtime, so it only happens on request.
+      document.getElementById("legacy-load").addEventListener("click", async (e) => {
+        const button = e.currentTarget;
+        const list = document.getElementById("legacy-list");
+        button.disabled = true;
+        list.replaceChildren(el("li", {}, "…"));
+        try {
+          const { listLegacyFiles } = await import("./public/runtime.js");
+          const files = await listLegacyFiles();
+          list.replaceChildren(
+            ...(files.length
+              ? files.map((f) =>
+                  el("li", {}, el("a", { href: `./play.html?legacy=${encodeURIComponent(f)}` }, f))
+                )
+              : [el("li", {}, t("legacy.none"))])
+          );
+        } catch (err) {
+          console.error(err);
+          list.replaceChildren(el("li", {}, String(err)));
+        }
+        button.disabled = false;
+      });
+
+      function renderAll() {
+        applyI18n();
+        renderSamples();
+        renderLibrary();
+      }
+      setupLangToggle(renderAll);
+      renderAll();
     </script>
   </body>
 </html>

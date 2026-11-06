@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MIDPath-Web Player</title>
+    <link rel="stylesheet" href="./public/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="./"><span class="brand-mark" aria-hidden="true"></span>MIDPath-Web</a>
+        <span class="header-spacer"></span>
+        <a class="header-link" href="./" data-i18n="player.back"></a>
+        <button class="lang-toggle" id="lang-toggle" type="button">English</button>
+      </div>
+    </header>
+
+    <main class="wrap player-layout">
+      <div class="phone">
+        <div class="phone-speaker" aria-hidden="true"></div>
+        <div class="screen-frame" id="screen-frame">
+          <div id="display"></div>
+          <div class="screen-overlay" id="overlay">
+            <div class="spinner" id="overlay-spinner"></div>
+            <div id="overlay-text" data-i18n="player.loading"></div>
+            <small id="overlay-sub" data-i18n="player.loading2"></small>
+            <button class="btn btn-primary" id="overlay-action" type="button" hidden data-i18n="player.restart"></button>
+          </div>
+        </div>
+
+        <div class="keypad" id="keypad" aria-label="Keypad">
+          <div class="keypad-top">
+            <div class="soft-col">
+              <button class="key soft" data-key="soft1" type="button" data-i18n="key.soft1"></button>
+            </div>
+            <div class="dpad">
+              <button class="key k-up" data-key="up" type="button" aria-label="Up">▲</button>
+              <button class="key k-left" data-key="left" type="button" aria-label="Left">◀</button>
+              <button class="key k-fire" data-key="fire" type="button" aria-label="Select">●</button>
+              <button class="key k-right" data-key="right" type="button" aria-label="Right">▶</button>
+              <button class="key k-down" data-key="down" type="button" aria-label="Down">▼</button>
+            </div>
+            <div class="soft-col right">
+              <button class="key soft" data-key="soft2" type="button" data-i18n="key.soft2"></button>
+            </div>
+          </div>
+          <div class="numpad">
+            <button class="key" data-key="1" type="button">1</button>
+            <button class="key" data-key="2" type="button">2<small>abc</small></button>
+            <button class="key" data-key="3" type="button">3<small>def</small></button>
+            <button class="key" data-key="4" type="button">4<small>ghi</small></button>
+            <button class="key" data-key="5" type="button">5<small>jkl</small></button>
+            <button class="key" data-key="6" type="button">6<small>mno</small></button>
+            <button class="key" data-key="7" type="button">7<small>pqrs</small></button>
+            <button class="key" data-key="8" type="button">8<small>tuv</small></button>
+            <button class="key" data-key="9" type="button">9<small>wxyz</small></button>
+            <button class="key" data-key="star" type="button">*</button>
+            <button class="key" data-key="0" type="button">0</button>
+            <button class="key" data-key="pound" type="button">#</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-side">
+        <h1 id="app-title">MIDlet</h1>
+        <p class="sub" id="app-sub"></p>
+        <p class="sub" id="app-source" hidden><a target="_blank" rel="noopener"></a></p>
+
+        <div class="panel">
+          <h2 data-i18n="player.view"></h2>
+          <div class="toolbar">
+            <span data-i18n="player.zoom"></span>
+            <div class="seg" id="zoom">
+              <button type="button" data-zoom="1">1×</button>
+              <button type="button" data-zoom="1.5">1.5×</button>
+              <button type="button" data-zoom="2">2×</button>
+            </div>
+            <button class="btn btn-ghost" type="button" id="btn-fullscreen" data-i18n="player.fullscreen"></button>
+            <button class="btn btn-ghost" type="button" id="btn-reload" data-i18n="player.reload"></button>
+          </div>
+        </div>
+
+        <div class="panel" id="app-settings" hidden>
+          <h2 data-i18n="player.appsettings"></h2>
+          <div id="app-settings-body"></div>
+          <p class="card-desc" data-i18n="player.appsettings.note"></p>
+          <button class="btn btn-primary" type="button" id="btn-apply-settings" hidden data-i18n="player.appsettings.apply"></button>
+        </div>
+
+        <div class="panel" id="game-keys" hidden>
+          <h2 data-i18n="player.controls"></h2>
+          <table class="keys-table" id="game-keys-table"></table>
+        </div>
+
+        <div class="panel">
+          <h2 data-i18n="player.keyboard"></h2>
+          <p class="card-desc" data-i18n="player.hint"></p>
+          <table class="keys-table">
+            <tr><td><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd></td><td data-i18n="player.keymap.arrows"></td></tr>
+            <tr><td><kbd>Enter</kbd></td><td data-i18n="player.keymap.fire"></td></tr>
+            <tr><td><kbd>F1</kbd> / <kbd>F2</kbd></td><td data-i18n="player.keymap.soft"></td></tr>
+            <tr><td><kbd>0</kbd>–<kbd>9</kbd></td><td data-i18n="player.keymap.num"></td></tr>
+          </table>
+        </div>
+
+        <details class="panel" id="log-panel">
+          <summary class="log-head">
+            <span data-i18n="player.log"></span>
+            <button class="btn btn-ghost" type="button" id="btn-copy-log" data-i18n="player.copylog"></button>
+          </summary>
+          <pre class="log" id="log-view"></pre>
+          <!-- CheerpJ writes Java's System.out/err here; it is drained into a bounded buffer. -->
+          <pre id="console" hidden></pre>
+        </details>
+      </div>
+    </main>
+
+    <script type="module">
+      import { SAMPLES, t, applyI18n, setupLangToggle, el, toast } from "./public/site.js";
+      import { getJar } from "./public/library.js";
+      import { initRuntime, runJar, provideJar, fetchJar } from "./public/runtime.js";
+      import { SETTINGS, appKey, getAppSettings, setAppSetting, javaPropertiesFor, defaultValue } from "./public/settings.js";
+
+      const params = new URLSearchParams(location.search);
+      const overlay = document.getElementById("overlay");
+      const overlayText = document.getElementById("overlay-text");
+      const overlaySub = document.getElementById("overlay-sub");
+      const overlaySpinner = document.getElementById("overlay-spinner");
+      const overlayAction = document.getElementById("overlay-action");
+      const display = document.getElementById("display");
+
+      // ---- what to run ------------------------------------------------------
+      let target = null;
+      if (params.has("sample")) {
+        const s = SAMPLES.find((x) => x.id === params.get("sample"));
+        if (s) target = { kind: "sample", sample: s, title: s.title };
+      } else if (params.has("local")) {
+        target = { kind: "local", id: params.get("local"), title: params.get("local") };
+      } else if (params.has("legacy")) {
+        target = { kind: "legacy", file: params.get("legacy"), title: params.get("legacy") };
+      }
+
+      // ---- per-app settings ---------------------------------------------------
+      // Read once: these are the values this launch actually runs with.
+      const settingsKey = appKey(target);
+      const launchProperties = javaPropertiesFor(settingsKey, target);
+      const launchSettings = JSON.stringify(getAppSettings(settingsKey));
+
+      function renderSettings() {
+        const panel = document.getElementById("app-settings");
+        panel.hidden = !settingsKey;
+        if (!settingsKey) return;
+        const lang = document.documentElement.lang;
+        const current = getAppSettings(settingsKey);
+        const valueLabel = { true: t("player.appsettings.on"), false: t("player.appsettings.off") };
+        document.getElementById("app-settings-body").replaceChildren(
+          ...SETTINGS.map((s) => {
+            const value = current[s.id] || "default";
+            const seg = el(
+              "div",
+              { class: "seg", role: "group", "aria-label": s.label[lang] },
+              ...s.choices.map((c) =>
+                el(
+                  "button",
+                  {
+                    type: "button",
+                    "aria-pressed": String(c === value),
+                    onclick: () => {
+                      setAppSetting(settingsKey, s.id, c);
+                      renderSettings();
+                    },
+                  },
+                  c === "default"
+                    ? (lang === "ja" ? `${t("player.appsettings.default")}（${valueLabel[defaultValue(s, target)] || "-"}）` : `${t("player.appsettings.default")} (${valueLabel[defaultValue(s, target)] || "-"})`)
+                    : valueLabel[c] || c
+                )
+              )
+            );
+            return el(
+              "div",
+              { class: "setting" },
+              el("div", { class: "toolbar" }, el("span", {}, s.label[lang]), seg),
+              el("p", { class: "card-desc" }, s.note[lang])
+            );
+          })
+        );
+        // Settings take effect at launch; offer a restart once they differ from this one.
+        document.getElementById("btn-apply-settings").hidden = JSON.stringify(current) === launchSettings;
+      }
+      document.getElementById("btn-apply-settings").addEventListener("click", () => location.reload());
+
+      function renderInfo() {
+        applyI18n();
+        renderSettings();
+        if (!target) return;
+        document.getElementById("app-title").textContent = target.title;
+        document.title = `${target.title} – MIDPath-Web`;
+        const lang = document.documentElement.lang;
+        const sub = document.getElementById("app-sub");
+        if (target.sample) sub.textContent = target.sample.desc[lang];
+        const source = document.getElementById("app-source");
+        source.hidden = !target.sample?.source;
+        if (target.sample?.source) {
+          const a = source.querySelector("a");
+          a.href = target.sample.source;
+          a.textContent = `${t("source")}: ${target.sample.source.replace("https://github.com/", "")}`;
+        }
+        else if (target.record) sub.textContent = [target.record.vendor, target.record.version && "v" + target.record.version, target.record.fileName].filter(Boolean).join(" · ");
+        const keys = target.sample?.keys?.[lang];
+        document.getElementById("game-keys").hidden = !keys;
+        if (keys) {
+          document.getElementById("game-keys-table").replaceChildren(
+            ...keys.map(([k, v]) => el("tr", {}, el("td", {}, el("kbd", {}, k)), el("td", {}, v)))
+          );
+        }
+      }
+      setupLangToggle(renderInfo);
+
+      function showMessage(textKey, { spinner = false, action = false, detail = "" } = {}) {
+        overlay.hidden = false;
+        overlaySpinner.hidden = !spinner;
+        overlayText.dataset.i18n = textKey;
+        overlayText.textContent = t(textKey);
+        overlaySub.removeAttribute("data-i18n");
+        overlaySub.textContent = detail;
+        overlayAction.hidden = !action;
+      }
+      overlayAction.addEventListener("click", () => location.reload());
+
+      // ---- zoom / fullscreen ------------------------------------------------
+      const frame = document.getElementById("screen-frame");
+      const zoomButtons = [...document.querySelectorAll("#zoom button")];
+      function setZoom(z) {
+        frame.style.zoom = z;
+        zoomButtons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.zoom === String(z))));
+        try { localStorage.setItem("zoom", String(z)); } catch {}
+      }
+      let savedZoom = null;
+      try { savedZoom = localStorage.getItem("zoom"); } catch {}
+      setZoom(savedZoom || (innerWidth >= 900 && innerHeight >= 860 ? "1.5" : "1"));
+      zoomButtons.forEach((b) => b.addEventListener("click", () => setZoom(b.dataset.zoom)));
+      // Fullscreen: scale the screen to fit, keeping the aspect ratio.
+      document.getElementById("btn-fullscreen").addEventListener("click", () => frame.requestFullscreen?.());
+      function fitFullscreen() {
+        if (document.fullscreenElement === frame) {
+          frame.style.zoom = 1;
+          display.style.zoom = Math.max(1, Math.min(innerWidth / 240, innerHeight / 320));
+        } else {
+          display.style.zoom = "";
+          const pressed = zoomButtons.find((b) => b.getAttribute("aria-pressed") === "true");
+          frame.style.zoom = pressed ? pressed.dataset.zoom : 1;
+        }
+      }
+      document.addEventListener("fullscreenchange", fitFullscreen);
+      window.addEventListener("resize", () => document.fullscreenElement === frame && fitFullscreen());
+
+      // ---- log --------------------------------------------------------------
+      // Java's System.out/err go to #console (CheerpJ). A MIDlet or stub that prints every
+      // frame made that element grow without bound, which slowed the page until it stopped
+      // responding. So #console is emptied every half second into a bounded buffer that
+      // keeps the last lines and collapses repeats; only the buffer is shown and copied.
+      class LogBuffer {
+        constructor(max) {
+          this.max = max;
+          this.lines = []; // { text, count }
+          this.dropped = 0;
+          this.total = 0;
+        }
+        push(text) {
+          this.total++;
+          const last = this.lines[this.lines.length - 1];
+          if (last && last.text === text) {
+            last.count++;
+            return;
+          }
+          this.lines.push({ text, count: 1 });
+          if (this.lines.length > this.max) {
+            this.lines.shift();
+            this.dropped++;
+          }
+        }
+        toString() {
+          const out = this.lines.map((l) => (l.count > 1 ? `${l.text}  (x${l.count})` : l.text));
+          if (this.dropped) out.unshift(`(… ${this.dropped} earlier lines dropped)`);
+          return out.join("\n");
+        }
+      }
+      const javaLog = new LogBuffer(2000);
+      const browserLog = new LogBuffer(500);
+      const consoleEl = document.getElementById("console");
+      const logView = document.getElementById("log-view");
+      const logPanel = document.getElementById("log-panel");
+      let pending = "";
+      let logDirty = false;
+      function drainConsole() {
+        const text = consoleEl.textContent;
+        if (!text) return;
+        consoleEl.textContent = "";
+        const parts = (pending + text).split("\n");
+        pending = parts.pop(); // keep an unfinished last line for the next round
+        for (const line of parts) javaLog.push(line);
+        logDirty = true;
+      }
+      setInterval(() => {
+        drainConsole();
+        // Redraw only when someone is looking at it.
+        if (logDirty && logPanel.open) {
+          logView.textContent = javaLog.toString();
+          logDirty = false;
+        }
+      }, 500);
+      logPanel.addEventListener("toggle", () => {
+        if (logPanel.open) {
+          drainConsole();
+          logView.textContent = javaLog.toString();
+          logDirty = false;
+        }
+      });
+
+      // How long the page's main thread was blocked: if this grows while a MIDlet runs,
+      // the page cannot react to taps and keys.
+      let maxStall = 0;
+      let lastTick = performance.now();
+      setInterval(() => {
+        const now = performance.now();
+        maxStall = Math.max(maxStall, now - lastTick - 250);
+        lastTick = now;
+      }, 250);
+
+      for (const level of ["error", "warn"]) {
+        const original = console[level].bind(console);
+        console[level] = (...args) => {
+          browserLog.push(`[${level}] ` + args.map((a) => (a instanceof Error ? a.stack || a.message : String(a))).join(" "));
+          original(...args);
+        };
+      }
+      window.addEventListener("error", (e) => browserLog.push(`[error] ${e.message} (${e.filename}:${e.lineno})`));
+      window.addEventListener("unhandledrejection", (e) => browserLog.push(`[unhandled] ${e.reason?.stack || e.reason}`));
+
+      // HTTP errors (e.g. 404) never reach console.error, but the Resource Timing API
+      // reports the status of every request the page made.
+      function describe(n) {
+        if (!n) return "none";
+        return n.tagName.toLowerCase() + (n.id ? "#" + n.id : "") + (n.className && typeof n.className === "string" ? "." + n.className.trim().split(/\s+/).join(".") : "") + (n.hasAttribute?.("tabindex") ? "[tabindex]" : "");
+      }
+      function failedRequests() {
+        const entries = performance.getEntriesByType("resource");
+        if (entries.length && !("responseStatus" in entries[0])) return "(not supported by this browser)";
+        const failed = entries.filter((e) => e.responseStatus >= 400);
+        if (!failed.length) return "(none)";
+        const counts = new Map();
+        for (const e of failed) {
+          const key = `${e.responseStatus} ${e.name}`;
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+        return `${failed.length} failed\n` + [...counts].map(([k, n]) => (n > 1 ? `${k} (x${n})` : k)).join("\n");
+      }
+      performance.setResourceTimingBufferSize?.(10000);
+
+      document.getElementById("btn-copy-log").addEventListener("click", async (e) => {
+        e.preventDefault(); // keep the <details> state
+        const text = [
+          `URL: ${location.href}`,
+          `Time: ${new Date().toISOString()}`,
+          `UserAgent: ${navigator.userAgent}`,
+          `App settings: ${launchProperties.join(" ") || "(defaults)"}`,
+          `Focus: ${describe(document.activeElement)} (in screen: ${javaHasFocus()})`,
+          `Screen elements: ${[...display.querySelectorAll("*")].slice(0, 12).map(describe).join(", ")}`,
+          `Main thread longest stall: ${Math.round(maxStall)} ms`,
+          `Java output lines: ${javaLog.total}`,
+          "",
+          "--- Java console ---",
+          (drainConsole(), javaLog.toString() + (pending ? "\n" + pending : "")).trimEnd() || "(empty)",
+          "",
+          "--- Browser console (errors/warnings) ---",
+          browserLog.toString() || "(empty)",
+          "",
+          "--- Failed requests ---",
+          failedRequests(),
+        ].join("\n");
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const ta = el("textarea", { style: "position:fixed;opacity:0" }, text);
+          document.body.append(ta);
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+        }
+        toast(t("player.copied"));
+      });
+      document.getElementById("btn-reload").addEventListener("click", () => location.reload());
+
+      // ---- on-screen keypad -------------------------------------------------
+      // Key codes follow lib/configuration/.../configuration.cfg (Java VK codes as
+      // produced by CheerpJ from these DOM keys).
+      const KEYS = {
+        up: ["ArrowUp", "ArrowUp", 38],
+        down: ["ArrowDown", "ArrowDown", 40],
+        left: ["ArrowLeft", "ArrowLeft", 37],
+        right: ["ArrowRight", "ArrowRight", 39],
+        fire: ["Enter", "Enter", 13],
+        soft1: ["F1", "F1", 112],
+        soft2: ["F2", "F2", 113],
+        star: ["*", "NumpadMultiply", 106],
+        pound: ["#", "Digit3", 51],
+      };
+      for (let d = 0; d <= 9; d++) KEYS[String(d)] = [String(d), `Digit${d}`, 48 + d];
+
+      function keyTarget() {
+        const active = document.activeElement;
+        if (active && active !== document.body && display.contains(active)) return active;
+        return display.querySelector("textarea, input, canvas, [tabindex]") || display;
+      }
+      function makeKeyEvent(type, key, code, keyCode, extra = {}) {
+        const ev = new KeyboardEvent(type, { key, code, bubbles: true, cancelable: true, composed: true, ...extra });
+        for (const prop of ["keyCode", "which"]) Object.defineProperty(ev, prop, { get: () => keyCode });
+        return ev;
+      }
+      function sendKey(name, type) {
+        const [key, code, keyCode] = KEYS[name];
+        focusJava();
+        keyTarget().dispatchEvent(makeKeyEvent(type, key, code, keyCode));
+      }
+
+      // Keyboard input only reaches the Java window once it has focus, which CheerpJ gives it
+      // when the screen is clicked. Do that click for the user: after launch, before keypad
+      // presses, and when a key is pressed while focus is elsewhere on the page. The click
+      // lands on the screen's top-left pixel; the bundled games ignore pointer input.
+      let javaRunning = false;
+      function javaHasFocus() {
+        const a = document.activeElement;
+        return !!a && a !== display && display.contains(a);
+      }
+      function focusJava() {
+        if (!javaRunning || javaHasFocus()) return;
+        const r = display.getBoundingClientRect();
+        const x = r.left + 1, y = r.top + 1;
+        const hit = document.elementFromPoint(x, y);
+        const target = hit && display.contains(hit) ? hit : display.querySelector("canvas") || display;
+        const opts = { bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, button: 0, view: window };
+        target.dispatchEvent(new PointerEvent("pointerdown", { ...opts, pointerId: 1, isPrimary: true }));
+        target.dispatchEvent(new MouseEvent("mousedown", { ...opts, buttons: 1 }));
+        target.dispatchEvent(new PointerEvent("pointerup", { ...opts, pointerId: 1, isPrimary: true }));
+        target.dispatchEvent(new MouseEvent("mouseup", opts));
+        target.dispatchEvent(new MouseEvent("click", opts));
+        if (!javaHasFocus()) {
+          const focusable = display.querySelector("textarea, input, [tabindex]");
+          focusable?.focus({ preventScroll: true });
+        }
+      }
+
+      // Physical keys pressed while the page (not the screen) has focus: focus the screen
+      // and forward the key, so the first key press is not lost.
+      const FORWARD = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Enter", "F1", "F2", "*", "#",
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
+      for (const type of ["keydown", "keyup"]) {
+        document.addEventListener(type, (e) => {
+          if (!javaRunning || !e.isTrusted || !FORWARD.has(e.key)) return;
+          if (display.contains(e.target) && javaHasFocus()) return;
+          const t = e.target;
+          if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          focusJava();
+          keyTarget().dispatchEvent(makeKeyEvent(type, e.key, e.code, e.keyCode, { shiftKey: e.shiftKey }));
+        }, true);
+      }
+      document.querySelectorAll("#keypad .key").forEach((btn) => {
+        const name = btn.dataset.key;
+        let held = false;
+        const release = () => {
+          if (!held) return;
+          held = false;
+          btn.classList.remove("is-down");
+          sendKey(name, "keyup");
+        };
+        btn.addEventListener("pointerdown", (e) => {
+          // Keep focus on the Java display so physical keys keep working.
+          e.preventDefault();
+          held = true;
+          btn.classList.add("is-down");
+          btn.setPointerCapture?.(e.pointerId);
+          sendKey(name, "keydown");
+          if (name.length === 1 || name === "star" || name === "pound") sendKey(name, "keypress");
+        });
+        btn.addEventListener("pointerup", release);
+        btn.addEventListener("pointercancel", release);
+        btn.addEventListener("contextmenu", (e) => e.preventDefault());
+      });
+      // F1 would otherwise open the browser's help page.
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "F1" || e.key === "F2") e.preventDefault();
+      });
+
+      // ---- start ------------------------------------------------------------
+      async function start() {
+        renderInfo();
+        if (!target) {
+          showMessage("player.notfound", { detail: "" });
+          return;
+        }
+        let bytes = null;
+        if (target.kind === "local") {
+          const rec = await getJar(target.id).catch(() => null);
+          if (!rec) {
+            showMessage("player.notfound", { detail: target.id });
+            return;
+          }
+          target.record = rec;
+          target.title = rec.title || rec.fileName;
+          renderInfo();
+          bytes = new Uint8Array(await rec.data.arrayBuffer());
+          if (rec.kind === "kjx") target.innerJar = new Uint8Array(await rec.jar.arrayBuffer());
+        }
+
+        showMessage("player.loading", { spinner: true, detail: t("player.loading2") });
+        try {
+          await initRuntime({ debug: params.has("debug"), javaProperties: launchProperties });
+          // 240x320 screen (configuration.cfg) plus room for the AWT frame decoration.
+          // Same size as the MIDP screen (configuration.cfg); the AWT frame is undecorated.
+          cheerpjCreateDisplay(240, 320, display);
+
+          let jarPath;
+          let classJars;
+          if (target.kind === "sample") {
+            const name = target.sample.jar.split("/").pop();
+            jarPath = await provideJar(name, await fetchJar(target.sample.jar));
+          } else if (target.kind === "local") {
+            jarPath = await provideJar(target.record.fileName, bytes);
+            if (target.innerJar) {
+              // KJX: MIDPath reads the .kjx itself, but loads the classes from its jar.
+              const innerName = target.record.fileName.replace(/\.kjx$/i, "") + ".jar";
+              classJars = [await provideJar(innerName, target.innerJar)];
+            }
+          } else jarPath = `/files/${target.file}`;
+
+          showMessage("player.starting", { spinner: true });
+          // Reveal the screen as soon as Java starts drawing into the display.
+          javaRunning = true;
+          // Give the screen keyboard focus once the MIDlet window has appeared.
+          for (const ms of [1500, 4000, 8000]) setTimeout(focusJava, ms);
+          const observer = new MutationObserver(() => {
+            overlay.hidden = true;
+            observer.disconnect();
+          });
+          observer.observe(display, { childList: true, subtree: true, attributes: true });
+          setTimeout(() => {
+            overlay.hidden = true;
+            observer.disconnect();
+          }, 10000);
+
+          const exitCode = await runJar(jarPath, classJars || [jarPath]);
+          javaRunning = false;
+          observer.disconnect();
+          showMessage("player.exited", { action: true, detail: exitCode ? `exit ${exitCode}` : "" });
+        } catch (err) {
+          console.error(err);
+          showMessage("player.error", { action: true, detail: String(err?.message || err) });
+        }
+      }
+      start();
+    </script>
+  </body>
+</html>
